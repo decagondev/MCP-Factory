@@ -11,16 +11,16 @@ MCP Factory is an extensible MCP server framework built on FastMCP with a servic
 
 | Path | Purpose |
 |------|---------|
-| `main.py` | Entry point. Imports `mcp` from `nasa_apod.server` and calls `mcp.run()`. |
-| `nasa_apod/config.py` | Global server config. Contains `SERVER_NAME`. |
-| `nasa_apod/server.py` | Creates `FastMCP`, builds `ServiceRegistry`, adds plugins, applies them. |
-| `nasa_apod/services/base.py` | Abstract base classes: `BaseAPIClient`, `BaseFormatter`, `ServicePlugin` protocol. |
-| `nasa_apod/services/registry.py` | `ServiceRegistry` -- collects and applies plugins to FastMCP. |
-| `nasa_apod/services/apod/__init__.py` | `ApodService` -- implements `ServicePlugin`, registers 3 tools + 1 resource. |
-| `nasa_apod/services/apod/config.py` | APOD constants: base URL, API key (from env), first date, timeout. |
-| `nasa_apod/services/apod/client.py` | `ApodClient(BaseAPIClient)` -- async HTTP client for NASA APOD API. |
-| `nasa_apod/services/apod/formatter.py` | `ApodFormatter(BaseFormatter)` -- renders Markdown from APOD data. |
-| `nasa_apod/services/apod/validation.py` | `validate_apod_date()` -- date parsing and range validation. |
+| `main.py` | Entry point. Imports `mcp` from `mcp_factory.server` and calls `mcp.run()`. |
+| `mcp_factory/config.py` | Global server config. Contains `SERVER_NAME`. |
+| `mcp_factory/server.py` | Creates `FastMCP`, builds `ServiceRegistry`, adds plugins, applies them. |
+| `mcp_factory/services/base.py` | Abstract base classes: `BaseAPIClient`, `BaseFormatter`, `ServicePlugin` protocol. |
+| `mcp_factory/services/registry.py` | `ServiceRegistry` -- collects and applies plugins to FastMCP. |
+| `mcp_factory/services/apod/__init__.py` | `ApodService` -- implements `ServicePlugin`, registers 3 tools + 1 resource. |
+| `mcp_factory/services/apod/config.py` | APOD constants: base URL, API key (from env), first date, timeout. |
+| `mcp_factory/services/apod/client.py` | `ApodClient(BaseAPIClient)` -- async HTTP client for NASA APOD API. |
+| `mcp_factory/services/apod/formatter.py` | `ApodFormatter(BaseFormatter)` -- renders Markdown from APOD data. |
+| `mcp_factory/services/apod/validation.py` | `validate_apod_date()` -- date parsing and range validation. |
 
 ## Key Abstractions
 
@@ -31,7 +31,7 @@ MCP Factory is an extensible MCP server framework built on FastMCP with a servic
 
 ## Conventions
 
-- All service-specific code lives under `nasa_apod/services/<service_name>/`.
+- All service-specific code lives under `mcp_factory/services/<service_name>/`.
 - Tools are defined as closures inside `ServiceClass.register(mcp)`.
 - Tools return strings, never raise exceptions.
 - HTTP errors produce `None` from `client.fetch()`. Tools check for `None` and return error strings.

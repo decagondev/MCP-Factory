@@ -19,7 +19,7 @@ uv run pytest tests/test_e2e.py -v  # Run E2E tests only
 
 ```mermaid
 flowchart LR
-    Main["main.py"] --> Server["nasa_apod/server.py"]
+    Main["main.py"] --> Server["mcp_factory/server.py"]
     Server --> Reg["ServiceRegistry"]
     Reg --> APOD["ApodService<br/>(3 tools, 1 resource)"]
     Reg --> CG["CodeGuardianService<br/>(5 tools, 1 resource)"]
@@ -28,16 +28,16 @@ flowchart LR
 ```
 
 - `main.py` is a thin entry point that calls `mcp.run(transport="stdio")`.
-- `nasa_apod/server.py` creates the FastMCP instance, builds a `ServiceRegistry`, registers service plugins, and applies them.
+- `mcp_factory/server.py` creates the FastMCP instance, builds a `ServiceRegistry`, registers service plugins, and applies them.
 - Each service plugin implements `register(mcp: FastMCP)` which uses `@mcp.tool()` and `@mcp.resource()` decorators to wire endpoints.
 
-### Base Abstractions (nasa_apod/services/base.py)
+### Base Abstractions (mcp_factory/services/base.py)
 
 - `BaseAPIClient(ABC)`: `__init__(base_url, api_key, timeout)`, abstract `fetch(**params) -> dict | None`
 - `BaseFormatter(ABC)`: abstract `format(data, **kwargs) -> str`
 - `ServicePlugin(Protocol)`: requires `register(mcp: FastMCP) -> None`
 
-### Service Registry (nasa_apod/services/registry.py)
+### Service Registry (mcp_factory/services/registry.py)
 
 - `ServiceRegistry`: `add(plugin)`, `apply_all(mcp)`, `plugins` property
 
@@ -45,7 +45,7 @@ flowchart LR
 
 ```
 main.py                                 Entry point
-nasa_apod/
+mcp_factory/
   __init__.py                           Package marker
   config.py                             SERVER_NAME constant
   server.py                             FastMCP + ServiceRegistry wiring
@@ -112,18 +112,18 @@ docs/
 
 ## How to Add a New API Service
 
-1. Create directory: `nasa_apod/services/<name>/`
+1. Create directory: `mcp_factory/services/<name>/`
 2. Create `config.py` with API URL, key (from env var), timeout
 3. Create `client.py` extending `BaseAPIClient` with `fetch()` method
 4. Create `formatter.py` extending `BaseFormatter` with `format()` method
 5. Create `__init__.py` with service class implementing `register(mcp)` that defines tools via `@mcp.tool()`
-6. In `nasa_apod/server.py`: import the service class and add `registry.add(YourService())`
+6. In `mcp_factory/server.py`: import the service class and add `registry.add(YourService())`
 7. Write unit tests: `tests/test_<name>_client.py`, `tests/test_<name>_formatter.py`
 8. Write/update E2E tests in `tests/test_e2e.py`
 9. Run `uv run pytest -v` -- all tests must pass
 10. Update `.cursor/rules/mcp-factory-tools.mdc` if the new tool should be used by AI agents
 
-The APOD service (`nasa_apod/services/apod/`) is the simplest reference. The Code Guardian service (`nasa_apod/services/code_guardian/`) demonstrates a more complex plugin with multiple sub-analyzers, a custom registry, and an external API client.
+The APOD service (`mcp_factory/services/apod/`) is the simplest reference. The Code Guardian service (`mcp_factory/services/code_guardian/`) demonstrates a more complex plugin with multiple sub-analyzers, a custom registry, and an external API client.
 
 ## How to Add a Tool to an Existing Service
 

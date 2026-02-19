@@ -105,7 +105,7 @@ export NASA_API_KEY="your-key-here"
 ```
 mcp-factory/
 ├── main.py                         # Thin entry point — starts the MCP server
-├── nasa_apod/                      # Core package
+├── mcp_factory/                      # Core package
 │   ├── __init__.py
 │   ├── config.py                   # Global config (server name)
 │   ├── server.py                   # Builds FastMCP via ServiceRegistry
@@ -148,16 +148,16 @@ mcp-factory/
 
 ## Extending with a New API Service
 
-This server uses a **service plugin architecture**. Each API is a self-contained plugin under `nasa_apod/services/`. To add a new API:
+This server uses a **service plugin architecture**. Each API is a self-contained plugin under `mcp_factory/services/`. To add a new API:
 
-1. Create a new directory: `nasa_apod/services/your_api/`
+1. Create a new directory: `mcp_factory/services/your_api/`
 2. Implement a client extending `BaseAPIClient` (handles HTTP)
 3. Implement a formatter extending `BaseFormatter` (handles Markdown output)
 4. Create a service class with a `register(mcp)` method that registers your tools
-5. Add it to the registry in `nasa_apod/server.py`:
+5. Add it to the registry in `mcp_factory/server.py`:
 
 ```python
-from nasa_apod.services.your_api import YourApiService
+from mcp_factory.services.your_api import YourApiService
 
 registry.add(YourApiService())
 ```

@@ -21,10 +21,10 @@ When you fork this repo, you inherit:
 
 | Item | Current Value | Change To |
 |------|---------------|-----------|
-| Root package directory | `nasa_apod/` | `your_package/` |
+| Root package directory | `mcp_factory/` | `your_package/` |
 | `pyproject.toml` `name` | `mcp-factory` | `your-project-name` |
 | `pyproject.toml` `description` | MCP server for NASA APOD | Your description |
-| `nasa_apod/config.py` `SERVER_NAME` | `"mcp-factory"` | `"your-server-name"` |
+| `mcp_factory/config.py` `SERVER_NAME` | `"mcp-factory"` | `"your-server-name"` |
 | `.cursor/rules/mcp-factory-tools.mdc` | APOD-specific tool routing | Your tool routing |
 | `CLAUDE.md` | References NASA APOD | Your project context |
 | `README.md` | NASA APOD documentation | Your project documentation |
@@ -35,11 +35,11 @@ The cleanest approach is a project-wide find-and-replace:
 
 ```bash
 # 1. Rename the directory
-mv nasa_apod your_package
+mv mcp_factory your_package
 
 # 2. Replace all imports
-# In every .py file, replace "nasa_apod" with "your_package"
-# In every .mdc file, replace "nasa_apod" with "your_package"
+# In every .py file, replace "mcp_factory" with "your_package"
+# In every .mdc file, replace "mcp_factory" with "your_package"
 
 # 3. Update pyproject.toml
 # Change name, description, and version
@@ -144,7 +144,7 @@ cd your-project
 
 **2. Rename the package**
 
-Rename `nasa_apod/` to your package name. Find-and-replace all imports.
+Rename `mcp_factory/` to your package name. Find-and-replace all imports.
 
 **3. Update `pyproject.toml`**
 

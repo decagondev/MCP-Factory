@@ -19,7 +19,7 @@ flowchart LR
     G --> H["8. Run<br/>pytest"]
 ```
 
-Every step produces one file. The APOD service (`nasa_apod/services/apod/`) is the reference implementation -- each step below links to the corresponding APOD file as a working example.
+Every step produces one file. The APOD service (`mcp_factory/services/apod/`) is the reference implementation -- each step below links to the corresponding APOD file as a working example.
 
 ---
 
@@ -29,25 +29,25 @@ Before starting, make sure you understand:
 
 - The API you are integrating (base URL, authentication, response format)
 - The [Architecture](ARCHITECTURE.md) document (plugin lifecycle, base abstractions)
-- The base classes in `nasa_apod/services/base.py` (`BaseAPIClient`, `BaseFormatter`, `ServicePlugin`)
+- The base classes in `mcp_factory/services/base.py` (`BaseAPIClient`, `BaseFormatter`, `ServicePlugin`)
 
 ---
 
 ## Step 1: Create the Service Directory
 
-Create a new directory under `nasa_apod/services/` named after your API:
+Create a new directory under `mcp_factory/services/` named after your API:
 
 ```bash
-mkdir -p nasa_apod/services/your_api
-touch nasa_apod/services/your_api/__init__.py
-touch nasa_apod/services/your_api/config.py
-touch nasa_apod/services/your_api/client.py
-touch nasa_apod/services/your_api/formatter.py
+mkdir -p mcp_factory/services/your_api
+touch mcp_factory/services/your_api/__init__.py
+touch mcp_factory/services/your_api/config.py
+touch mcp_factory/services/your_api/client.py
+touch mcp_factory/services/your_api/formatter.py
 ```
 
 Optionally add a `validation.py` if your service needs input validation (dates, IDs, etc.).
 
-**APOD reference:** `nasa_apod/services/apod/`
+**APOD reference:** `mcp_factory/services/apod/`
 
 ---
 
@@ -59,7 +59,7 @@ Define all constants specific to your API: base URL, API key (from environment),
 """Configuration constants for the Your API service.
 
 All values specific to this API live here. Global/shared settings
-remain in ``nasa_apod.config``.
+remain in ``mcp_factory.config``.
 """
 
 import os
@@ -79,7 +79,7 @@ REQUEST_TIMEOUT_SECONDS: float = 30.0
 - Use typed module-level constants with docstrings.
 - Keep this file free of logic -- constants only.
 
-**APOD reference:** `nasa_apod/services/apod/config.py`
+**APOD reference:** `mcp_factory/services/apod/config.py`
 
 ---
 
@@ -95,7 +95,7 @@ from typing import Any
 
 import httpx
 
-from nasa_apod.services.base import BaseAPIClient
+from mcp_factory.services.base import BaseAPIClient
 
 logger = logging.getLogger(__name__)
 
@@ -103,7 +103,7 @@ logger = logging.getLogger(__name__)
 class YourClient(BaseAPIClient):
     """Async HTTP client for Your API.
 
-    Extends :class:`~nasa_apod.services.base.BaseAPIClient` with
+    Extends :class:`~mcp_factory.services.base.BaseAPIClient` with
     request logic specific to Your API.
     """
 
@@ -145,7 +145,7 @@ class YourClient(BaseAPIClient):
 - Use `httpx.HTTPStatusError` and `httpx.RequestError` -- not bare `Exception`.
 - Log errors with `logging`, never `print()`.
 
-**APOD reference:** `nasa_apod/services/apod/client.py`
+**APOD reference:** `mcp_factory/services/apod/client.py`
 
 ---
 
@@ -158,13 +158,13 @@ Extend `BaseFormatter` and implement the `format()` method. This is a pure funct
 
 from typing import Any
 
-from nasa_apod.services.base import BaseFormatter
+from mcp_factory.services.base import BaseFormatter
 
 
 class YourFormatter(BaseFormatter):
     """Formats Your API responses into Markdown.
 
-    Extends :class:`~nasa_apod.services.base.BaseFormatter` with
+    Extends :class:`~mcp_factory.services.base.BaseFormatter` with
     field handling specific to Your API's response schema.
     """
 
@@ -196,7 +196,7 @@ class YourFormatter(BaseFormatter):
 - Handle optional fields defensively (check before accessing).
 - Accept `**kwargs` for optional rendering options like headers.
 
-**APOD reference:** `nasa_apod/services/apod/formatter.py`
+**APOD reference:** `mcp_factory/services/apod/formatter.py`
 
 ---
 
@@ -208,19 +208,19 @@ This is the integration point. The service class composes the client and formatt
 """Your API service plugin.
 
 Exposes :class:`YourService`, which satisfies the
-:class:`~nasa_apod.services.base.ServicePlugin` protocol and
+:class:`~mcp_factory.services.base.ServicePlugin` protocol and
 registers all Your API tools and resources onto a FastMCP server.
 """
 
 from mcp.server.fastmcp import FastMCP
 
-from nasa_apod.services.your_api.client import YourClient
-from nasa_apod.services.your_api.config import (
+from mcp_factory.services.your_api.client import YourClient
+from mcp_factory.services.your_api.config import (
     REQUEST_TIMEOUT_SECONDS,
     YOUR_API_BASE_URL,
     YOUR_API_KEY,
 )
-from nasa_apod.services.your_api.formatter import YourFormatter
+from mcp_factory.services.your_api.formatter import YourFormatter
 
 __all__ = ["YourService"]
 
@@ -269,16 +269,16 @@ class YourService:
 - Tool docstrings are critical -- the AI agent uses them to decide when to call the tool.
 - Tools return strings. They never raise exceptions.
 
-**APOD reference:** `nasa_apod/services/apod/__init__.py`
+**APOD reference:** `mcp_factory/services/apod/__init__.py`
 
 ---
 
 ## Step 6: Register in `server.py`
 
-Open `nasa_apod/server.py` and add two lines:
+Open `mcp_factory/server.py` and add two lines:
 
 ```python
-from nasa_apod.services.your_api import YourService
+from mcp_factory.services.your_api import YourService
 
 registry.add(YourService())
 ```
@@ -288,10 +288,10 @@ The full file after the change:
 ```python
 from mcp.server.fastmcp import FastMCP
 
-from nasa_apod.config import SERVER_NAME
-from nasa_apod.services.apod import ApodService
-from nasa_apod.services.registry import ServiceRegistry
-from nasa_apod.services.your_api import YourService   # new import
+from mcp_factory.config import SERVER_NAME
+from mcp_factory.services.apod import ApodService
+from mcp_factory.services.registry import ServiceRegistry
+from mcp_factory.services.your_api import YourService   # new import
 
 mcp = FastMCP(SERVER_NAME)
 
@@ -318,8 +318,8 @@ import httpx
 import pytest
 import respx
 
-from nasa_apod.services.your_api.client import YourClient
-from nasa_apod.services.your_api.config import YOUR_API_BASE_URL
+from mcp_factory.services.your_api.client import YourClient
+from mcp_factory.services.your_api.config import YOUR_API_BASE_URL
 
 
 @pytest.mark.asyncio
@@ -357,7 +357,7 @@ class TestYourClient:
 Test the formatter with sample data:
 
 ```python
-from nasa_apod.services.your_api.formatter import YourFormatter
+from mcp_factory.services.your_api.formatter import YourFormatter
 
 
 class TestYourFormatter:
@@ -394,11 +394,11 @@ All existing tests must still pass (no breaking changes). Your new tests must al
 
 Use this checklist before considering the service complete:
 
-- [ ] `nasa_apod/services/your_api/config.py` -- constants defined, secrets from env vars
-- [ ] `nasa_apod/services/your_api/client.py` -- extends `BaseAPIClient`, `fetch()` returns `dict | None`
-- [ ] `nasa_apod/services/your_api/formatter.py` -- extends `BaseFormatter`, `format()` returns `str`
-- [ ] `nasa_apod/services/your_api/__init__.py` -- service class with `register(mcp)` method
-- [ ] `nasa_apod/server.py` -- import and `registry.add(YourService())`
+- [ ] `mcp_factory/services/your_api/config.py` -- constants defined, secrets from env vars
+- [ ] `mcp_factory/services/your_api/client.py` -- extends `BaseAPIClient`, `fetch()` returns `dict | None`
+- [ ] `mcp_factory/services/your_api/formatter.py` -- extends `BaseFormatter`, `format()` returns `str`
+- [ ] `mcp_factory/services/your_api/__init__.py` -- service class with `register(mcp)` method
+- [ ] `mcp_factory/server.py` -- import and `registry.add(YourService())`
 - [ ] `tests/test_your_client.py` -- client unit tests with mocked HTTP
 - [ ] `tests/test_your_formatter.py` -- formatter unit tests
 - [ ] E2E test added or existing E2E updated

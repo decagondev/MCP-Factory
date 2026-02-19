@@ -48,7 +48,7 @@ flowchart LR
     Import --> Build --> Apply --> Serve
 ```
 
-1. **Import time** -- `nasa_apod/server.py` imports concrete service classes (`ApodService`, etc.) and creates the `FastMCP` instance.
+1. **Import time** -- `mcp_factory/server.py` imports concrete service classes (`ApodService`, etc.) and creates the `FastMCP` instance.
 2. **Registry build** -- Each service is instantiated and added to the `ServiceRegistry` via `registry.add(...)`.
 3. **Apply plugins** -- `registry.apply_all(mcp)` iterates the plugins in registration order and calls `plugin.register(mcp)` on each. Inside `register`, the plugin uses `@mcp.tool()` and `@mcp.resource()` decorators to wire its endpoints.
 4. **Serve loop** -- `main.py` calls `mcp.run(transport="stdio")` and the server enters the JSON-RPC event loop.
@@ -121,7 +121,7 @@ This is the workflow a developer follows to extend the server with a new API.
 ```mermaid
 flowchart TD
     Start["Developer decides to<br/>add a new API"] --> Branch["Create feature branch<br/>git checkout -b feature/new-api"]
-    Branch --> Dir["Create service directory<br/>nasa_apod/services/new_api/"]
+    Branch --> Dir["Create service directory<br/>mcp_factory/services/new_api/"]
     Dir --> Config["Add config.py<br/>API URL, key from env, timeout"]
     Config --> ClientImpl["Implement client.py<br/>extend BaseAPIClient"]
     ClientImpl --> Formatter["Implement formatter.py<br/>extend BaseFormatter"]
@@ -141,10 +141,10 @@ This is the workflow for using this repo as a template for an entirely different
 
 ```mermaid
 flowchart TD
-    Fork["Fork / clone the repo"] --> Rename["Rename nasa_apod/ to your_package/<br/>Find-and-replace all imports"]
+    Fork["Fork / clone the repo"] --> Rename["Rename mcp_factory/ to your_package/<br/>Find-and-replace all imports"]
     Rename --> Meta["Update pyproject.toml<br/>name, description, version"]
     Meta --> ServerName["Update config.py<br/>SERVER_NAME = your-server"]
-    ServerName --> Delete["Delete nasa_apod/services/apod/<br/>and its tests"]
+    ServerName --> Delete["Delete mcp_factory/services/apod/<br/>and its tests"]
     Delete --> Create["Create your first service<br/>follow ADDING-A-SERVICE guide"]
     Create --> Register["Wire service in server.py"]
     Register --> Test["Write tests, run pytest"]
@@ -159,17 +159,17 @@ flowchart TD
 | Module | Responsibility |
 |--------|----------------|
 | `main.py` | Entry point. Imports `mcp` from `server.py` and calls `mcp.run()`. |
-| `nasa_apod/__init__.py` | Package marker. No logic. |
-| `nasa_apod/config.py` | Global server-wide settings (`SERVER_NAME`). |
-| `nasa_apod/server.py` | Creates `FastMCP`, builds `ServiceRegistry`, adds plugins, applies them. |
-| `nasa_apod/services/__init__.py` | Package marker for service infrastructure. |
-| `nasa_apod/services/base.py` | Abstract base classes (`BaseAPIClient`, `BaseFormatter`) and `ServicePlugin` protocol. |
-| `nasa_apod/services/registry.py` | `ServiceRegistry` -- collects and applies plugins. |
-| `nasa_apod/services/apod/__init__.py` | `ApodService` -- implements `ServicePlugin`, registers APOD tools and resources. |
-| `nasa_apod/services/apod/config.py` | APOD-specific constants: base URL, API key, first date, timeout. |
-| `nasa_apod/services/apod/client.py` | `ApodClient` -- extends `BaseAPIClient`, performs HTTP requests to NASA. |
-| `nasa_apod/services/apod/formatter.py` | `ApodFormatter` -- extends `BaseFormatter`, renders Markdown from APOD data. |
-| `nasa_apod/services/apod/validation.py` | `validate_apod_date()` -- date parsing and range checking. |
+| `mcp_factory/__init__.py` | Package marker. No logic. |
+| `mcp_factory/config.py` | Global server-wide settings (`SERVER_NAME`). |
+| `mcp_factory/server.py` | Creates `FastMCP`, builds `ServiceRegistry`, adds plugins, applies them. |
+| `mcp_factory/services/__init__.py` | Package marker for service infrastructure. |
+| `mcp_factory/services/base.py` | Abstract base classes (`BaseAPIClient`, `BaseFormatter`) and `ServicePlugin` protocol. |
+| `mcp_factory/services/registry.py` | `ServiceRegistry` -- collects and applies plugins. |
+| `mcp_factory/services/apod/__init__.py` | `ApodService` -- implements `ServicePlugin`, registers APOD tools and resources. |
+| `mcp_factory/services/apod/config.py` | APOD-specific constants: base URL, API key, first date, timeout. |
+| `mcp_factory/services/apod/client.py` | `ApodClient` -- extends `BaseAPIClient`, performs HTTP requests to NASA. |
+| `mcp_factory/services/apod/formatter.py` | `ApodFormatter` -- extends `BaseFormatter`, renders Markdown from APOD data. |
+| `mcp_factory/services/apod/validation.py` | `validate_apod_date()` -- date parsing and range checking. |
 
 ---
 
@@ -187,7 +187,7 @@ flowchart TD
 
 ## Key Abstractions
 
-### BaseAPIClient (`nasa_apod/services/base.py`)
+### BaseAPIClient (`mcp_factory/services/base.py`)
 
 ```python
 class BaseAPIClient(ABC):
@@ -197,7 +197,7 @@ class BaseAPIClient(ABC):
 
 Stores connection parameters. Subclasses implement `fetch()` to perform the actual HTTP request and return parsed JSON or `None`.
 
-### BaseFormatter (`nasa_apod/services/base.py`)
+### BaseFormatter (`mcp_factory/services/base.py`)
 
 ```python
 class BaseFormatter(ABC):
@@ -206,7 +206,7 @@ class BaseFormatter(ABC):
 
 Pure function contract. Takes API response data, returns a Markdown string.
 
-### ServicePlugin (`nasa_apod/services/base.py`)
+### ServicePlugin (`mcp_factory/services/base.py`)
 
 ```python
 class ServicePlugin(Protocol):
@@ -215,7 +215,7 @@ class ServicePlugin(Protocol):
 
 Structural protocol (duck typing). Any class with a `register(mcp)` method qualifies. No inheritance required.
 
-### ServiceRegistry (`nasa_apod/services/registry.py`)
+### ServiceRegistry (`mcp_factory/services/registry.py`)
 
 ```python
 class ServiceRegistry:
