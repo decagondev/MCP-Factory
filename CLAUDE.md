@@ -4,7 +4,7 @@ This file provides context for AI coding agents (Claude Code, Cursor, agentic fr
 
 ## Project Summary
 
-MCP Factory is an extensible MCP (Model Context Protocol) server framework built on FastMCP with a service plugin architecture. Ships with a NASA APOD (Astronomy Picture of the Day) service as a reference implementation. Designed to be extended with additional API services or forked as a template for new MCP server projects.
+MCP Factory is an extensible MCP (Model Context Protocol) server framework built on FastMCP with a service plugin architecture. Ships with two reference service implementations: NASA APOD (Astronomy Picture of the Day) and Code Guardian (security, code quality, and dependency vulnerability analysis). Designed to be extended with additional API services or forked as a template for new MCP server projects.
 
 ## Key Commands
 
@@ -21,8 +21,10 @@ uv run pytest tests/test_e2e.py -v  # Run E2E tests only
 flowchart LR
     Main["main.py"] --> Server["nasa_apod/server.py"]
     Server --> Reg["ServiceRegistry"]
-    Reg --> Plugins["ServicePlugins<br/>(ApodService, ...)"]
-    Plugins --> MCP["FastMCP<br/>(tools + resources)"]
+    Reg --> APOD["ApodService<br/>(3 tools, 1 resource)"]
+    Reg --> CG["CodeGuardianService<br/>(5 tools, 1 resource)"]
+    APOD --> MCP["FastMCP"]
+    CG --> MCP
 ```
 
 - `main.py` is a thin entry point that calls `mcp.run(transport="stdio")`.
@@ -57,6 +59,22 @@ nasa_apod/
       client.py                         ApodClient(BaseAPIClient)
       formatter.py                      ApodFormatter(BaseFormatter)
       validation.py                     validate_apod_date()
+    code_guardian/
+      __init__.py                       CodeGuardianService (5 tools, 1 resource)
+      config.py                         Thresholds, extensions, OSV settings
+      scanner.py                        FileScanner (recursive directory walker)
+      formatter.py                      CodeGuardianFormatter(BaseFormatter)
+      validation.py                     validate_scan_path()
+      models.py                         ScannedFile, Finding, ScanResult
+      osv_client.py                     OsvClient(BaseAPIClient) for CVE lookups
+      analyzers/
+        __init__.py                     BaseAnalyzer ABC + AnalyzerRegistry
+        secrets.py                      SecretAnalyzer (credentials, tokens)
+        security_patterns.py            SecurityPatternAnalyzer (OWASP Top 10)
+        debug_statements.py             DebugStatementAnalyzer (print/log)
+        code_quality.py                 CodeQualityAnalyzer (size, nesting)
+        style.py                        StyleAnalyzer (PEP 8, naming, comments)
+        dependencies.py                 DependencyAnalyzer (CVE via OSV.dev)
 tests/
   test_base.py                          ABC contract tests
   test_registry.py                      Registry tests
@@ -64,7 +82,20 @@ tests/
   test_apod_client.py                   Client tests (respx mocked)
   test_apod_formatter.py                Formatter tests
   test_apod_validation.py               Validation tests
-  test_e2e.py                           Full server E2E tests
+  test_e2e.py                           APOD E2E tests
+  test_code_guardian_models.py          Data model tests
+  test_code_guardian_scanner.py         FileScanner tests
+  test_code_guardian_analyzer_registry.py  Analyzer framework tests
+  test_code_guardian_formatter.py       Formatter tests
+  test_code_guardian_validation.py      Path validation tests
+  test_code_guardian_secret_analyzer.py Secret detection tests
+  test_code_guardian_security_pattern_analyzer.py  OWASP pattern tests
+  test_code_guardian_debug_analyzer.py  Debug statement tests
+  test_code_guardian_quality_analyzer.py Code quality tests
+  test_code_guardian_style_analyzer.py  Style/linting tests
+  test_code_guardian_osv_client.py      OSV API client tests
+  test_code_guardian_dependency_analyzer.py  Dependency analysis tests
+  test_code_guardian_e2e.py             Code Guardian E2E tests
 templates/
   service_template/                     Copy-paste boilerplate for new services
 docs/
@@ -90,7 +121,7 @@ docs/
 9. Run `uv run pytest -v` -- all tests must pass
 10. Update `.cursor/rules/mcp-factory-tools.mdc` if the new tool should be used by AI agents
 
-The APOD service (`nasa_apod/services/apod/`) is the canonical reference for this pattern.
+The APOD service (`nasa_apod/services/apod/`) is the simplest reference. The Code Guardian service (`nasa_apod/services/code_guardian/`) demonstrates a more complex plugin with multiple sub-analyzers, a custom registry, and an external API client.
 
 ## How to Add a Tool to an Existing Service
 
