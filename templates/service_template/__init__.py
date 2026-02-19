@@ -1,7 +1,7 @@
 """TODO: <Service Name> service plugin.
 
 Exposes :class:`TemplateService`, which satisfies the
-:class:`~nasa_apod.services.base.ServicePlugin` protocol and
+:class:`~mcp_factory.services.base.ServicePlugin` protocol and
 registers all TODO: <Service Name> tools and resources onto a
 FastMCP server instance.
 
@@ -10,7 +10,7 @@ TODO: Rename TemplateService to match your service (e.g. MarsRoverService).
 
 from mcp.server.fastmcp import FastMCP
 
-from nasa_apod.services.base import ServicePlugin  # noqa: F401 (for type reference)
+from mcp_factory.services.base import ServicePlugin  # noqa: F401 (for type reference)
 
 __all__ = ["TemplateService"]
 
@@ -35,13 +35,13 @@ class TemplateService:
         TODO: Uncomment and update these lines after creating your
         client and formatter:
 
-        from nasa_apod.services.<your_service>.client import YourClient
-        from nasa_apod.services.<your_service>.config import (
+        from mcp_factory.services.<your_service>.client import YourClient
+        from mcp_factory.services.<your_service>.config import (
             API_BASE_URL,
             API_KEY,
             REQUEST_TIMEOUT_SECONDS,
         )
-        from nasa_apod.services.<your_service>.formatter import YourFormatter
+        from mcp_factory.services.<your_service>.formatter import YourFormatter
 
         self._client = YourClient(
             base_url=API_BASE_URL,

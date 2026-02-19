@@ -11,7 +11,7 @@ from typing import Any
 
 import httpx
 
-from nasa_apod.services.base import BaseAPIClient
+from mcp_factory.services.base import BaseAPIClient
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 class TemplateClient(BaseAPIClient):
     """Async HTTP client for TODO: <Your API Name>.
 
-    Extends :class:`~nasa_apod.services.base.BaseAPIClient` with
+    Extends :class:`~mcp_factory.services.base.BaseAPIClient` with
     request logic specific to your API.
 
     TODO: Rename this class to match your service (e.g. MarsRoverClient).

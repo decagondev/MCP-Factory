@@ -9,13 +9,13 @@ response schema.
 
 from typing import Any
 
-from nasa_apod.services.base import BaseFormatter
+from mcp_factory.services.base import BaseFormatter
 
 
 class TemplateFormatter(BaseFormatter):
     """Formats TODO: <Your API> responses into Markdown.
 
-    Extends :class:`~nasa_apod.services.base.BaseFormatter` with
+    Extends :class:`~mcp_factory.services.base.BaseFormatter` with
     field handling specific to your API's response schema.
 
     TODO: Rename this class to match your service (e.g. MarsRoverFormatter).

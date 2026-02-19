@@ -7,7 +7,7 @@ This directory contains a copy-paste-ready service plugin skeleton. Use it to cr
 ### Option A: Copy and rename (recommended)
 
 ```bash
-cp -r templates/service_template nasa_apod/services/your_service_name
+cp -r templates/service_template mcp_factory/services/your_service_name
 ```
 
 Then open each file in the new directory and replace the `TODO` placeholders with your domain-specific logic.
@@ -30,9 +30,9 @@ Use the templates as a reference while creating files from scratch. Each templat
 
 1. Replace all `TODO` markers with your implementation
 2. Rename classes from `TemplateClient` / `TemplateFormatter` / `TemplateService` to match your API
-3. Register the service in `nasa_apod/server.py`:
+3. Register the service in `mcp_factory/server.py`:
    ```python
-   from nasa_apod.services.your_service_name import YourService
+   from mcp_factory.services.your_service_name import YourService
    registry.add(YourService())
    ```
 4. Write tests (see `tests/test_apod_*.py` for patterns)
@@ -40,4 +40,4 @@ Use the templates as a reference while creating files from scratch. Each templat
 
 ## Reference Implementation
 
-The APOD service at `nasa_apod/services/apod/` is a complete working implementation of this template pattern.
+The APOD service at `mcp_factory/services/apod/` is a complete working implementation of this template pattern.

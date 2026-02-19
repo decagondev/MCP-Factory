@@ -1,7 +1,7 @@
 """Configuration constants for the TODO: <Service Name> service.
 
 All values specific to this API live here. Global/shared settings
-remain in ``nasa_apod.config``.
+remain in ``mcp_factory.config``.
 
 TODO: Replace placeholder values with your API's configuration.
 """
