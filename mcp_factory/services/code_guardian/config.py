@@ -2,7 +2,7 @@
 
 Centralises every tunable value for file scanning, severity
 classification, and language detection.  Service-wide settings
-remain in ``nasa_apod.config``; only Code-Guardian-specific
+remain in ``mcp_factory.config``; only Code-Guardian-specific
 constants belong here.
 """
 

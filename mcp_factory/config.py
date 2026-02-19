@@ -2,7 +2,7 @@
 
 Contains only server-wide settings. Service-specific configuration
 (API keys, base URLs, timeouts) lives inside each service's own
-``config.py`` under ``nasa_apod.services.<name>``.
+``config.py`` under ``mcp_factory.services.<name>``.
 """
 
 SERVER_NAME: str = "mcp-factory"

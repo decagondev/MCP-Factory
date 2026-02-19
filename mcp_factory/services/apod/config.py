@@ -1,7 +1,7 @@
 """APOD-specific configuration constants.
 
 All values that are particular to the Astronomy Picture of the Day API
-live here. Global/shared settings remain in ``nasa_apod.config``.
+live here. Global/shared settings remain in ``mcp_factory.config``.
 """
 
 import os

@@ -1,12 +1,12 @@
 """MCP Factory entry point.
 
 Starts the MCP server over stdio transport. All tool and resource
-definitions live in the ``nasa_apod`` package; this module exists
+definitions live in the ``mcp_factory`` package; this module exists
 solely so that ``uv run main.py`` continues to work as the
 documented launch command.
 """
 
-from nasa_apod.server import mcp
+from mcp_factory.server import mcp
 
 
 def main() -> None:

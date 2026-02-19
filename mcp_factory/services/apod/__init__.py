@@ -1,7 +1,7 @@
 """APOD service plugin.
 
 Exposes :class:`ApodService`, which satisfies the
-:class:`~nasa_apod.services.base.ServicePlugin` protocol and
+:class:`~mcp_factory.services.base.ServicePlugin` protocol and
 registers all Astronomy Picture of the Day tools and resources
 onto a FastMCP server instance.
 """
@@ -11,15 +11,15 @@ from datetime import datetime, timedelta
 
 from mcp.server.fastmcp import FastMCP
 
-from nasa_apod.services.apod.client import ApodClient
-from nasa_apod.services.apod.config import (
+from mcp_factory.services.apod.client import ApodClient
+from mcp_factory.services.apod.config import (
     FIRST_APOD_DATE,
     NASA_APOD_BASE_URL,
     NASA_API_KEY,
     REQUEST_TIMEOUT_SECONDS,
 )
-from nasa_apod.services.apod.formatter import ApodFormatter
-from nasa_apod.services.apod.validation import validate_apod_date
+from mcp_factory.services.apod.formatter import ApodFormatter
+from mcp_factory.services.apod.validation import validate_apod_date
 
 __all__ = ["ApodService"]
 

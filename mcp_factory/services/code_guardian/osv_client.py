@@ -1,6 +1,6 @@
 """OSV (Open Source Vulnerabilities) API client.
 
-Extends :class:`~nasa_apod.services.base.BaseAPIClient` to query
+Extends :class:`~mcp_factory.services.base.BaseAPIClient` to query
 the `OSV.dev <https://osv.dev/>`_ vulnerability database.  OSV is
 free and requires no authentication.
 """
@@ -12,7 +12,7 @@ from typing import Any
 
 import httpx
 
-from nasa_apod.services.base import BaseAPIClient
+from mcp_factory.services.base import BaseAPIClient
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 class OsvClient(BaseAPIClient):
     """Async HTTP client for the OSV.dev vulnerability API.
 
-    Extends :class:`~nasa_apod.services.base.BaseAPIClient` with
+    Extends :class:`~mcp_factory.services.base.BaseAPIClient` with
     POST-based query semantics required by the OSV REST API.
 
     The ``fetch`` method accepts ``name`` and ``ecosystem`` keyword

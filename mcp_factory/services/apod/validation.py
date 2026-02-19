@@ -7,7 +7,7 @@ exactly one place.
 
 from datetime import datetime
 
-from nasa_apod.services.apod.config import DATE_FORMAT, FIRST_APOD_DATE
+from mcp_factory.services.apod.config import DATE_FORMAT, FIRST_APOD_DATE
 
 
 def validate_apod_date(date_str: str) -> datetime | str:

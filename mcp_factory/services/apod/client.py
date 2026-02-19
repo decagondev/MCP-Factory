@@ -9,7 +9,7 @@ from typing import Any
 
 import httpx
 
-from nasa_apod.services.base import BaseAPIClient
+from mcp_factory.services.base import BaseAPIClient
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class ApodClient(BaseAPIClient):
     """Async HTTP client for the NASA Astronomy Picture of the Day API.
 
-    Extends :class:`~nasa_apod.services.base.BaseAPIClient` with
+    Extends :class:`~mcp_factory.services.base.BaseAPIClient` with
     APOD-specific request logic. The ``fetch`` method accepts an
     optional ``date`` keyword to query a specific archive entry.
     """

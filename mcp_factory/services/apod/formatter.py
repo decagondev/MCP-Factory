@@ -6,13 +6,13 @@ returned by every APOD MCP tool.
 
 from typing import Any
 
-from nasa_apod.services.base import BaseFormatter
+from mcp_factory.services.base import BaseFormatter
 
 
 class ApodFormatter(BaseFormatter):
     """Formats APOD API responses into Markdown.
 
-    Extends :class:`~nasa_apod.services.base.BaseFormatter` with
+    Extends :class:`~mcp_factory.services.base.BaseFormatter` with
     APOD-specific field handling (title, date, explanation, media_type,
     url, and optional copyright).
     """

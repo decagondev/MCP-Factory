@@ -1,6 +1,6 @@
 """Code Guardian response formatter extending BaseFormatter.
 
-Converts :class:`~nasa_apod.services.code_guardian.models.ScanResult`
+Converts :class:`~mcp_factory.services.code_guardian.models.ScanResult`
 data into the Markdown report string returned by every Code Guardian
 MCP tool.
 """
@@ -9,8 +9,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from nasa_apod.services.base import BaseFormatter
-from nasa_apod.services.code_guardian.models import (
+from mcp_factory.services.base import BaseFormatter
+from mcp_factory.services.code_guardian.models import (
     SEVERITY_ORDER,
     Finding,
     ScanResult,
@@ -20,7 +20,7 @@ from nasa_apod.services.code_guardian.models import (
 class CodeGuardianFormatter(BaseFormatter):
     """Renders scan results as a structured Markdown report.
 
-    Extends :class:`~nasa_apod.services.base.BaseFormatter` with
+    Extends :class:`~mcp_factory.services.base.BaseFormatter` with
     Code-Guardian-specific logic: severity grouping, summary
     statistics, and per-finding detail blocks.
     """

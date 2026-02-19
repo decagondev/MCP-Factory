@@ -10,7 +10,7 @@ import logging
 
 from mcp.server.fastmcp import FastMCP
 
-from nasa_apod.services.base import ServicePlugin
+from mcp_factory.services.base import ServicePlugin
 
 logger = logging.getLogger(__name__)
 

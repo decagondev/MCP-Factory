@@ -14,9 +14,9 @@ import logging
 import re
 from typing import Any
 
-from nasa_apod.services.code_guardian.analyzers import BaseAnalyzer
-from nasa_apod.services.code_guardian.models import Finding, ScannedFile
-from nasa_apod.services.code_guardian.osv_client import OsvClient
+from mcp_factory.services.code_guardian.analyzers import BaseAnalyzer
+from mcp_factory.services.code_guardian.models import Finding, ScannedFile
+from mcp_factory.services.code_guardian.osv_client import OsvClient
 
 logger = logging.getLogger(__name__)
 

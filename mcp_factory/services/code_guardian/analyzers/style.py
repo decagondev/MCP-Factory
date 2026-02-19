@@ -10,8 +10,8 @@ from __future__ import annotations
 
 import re
 
-from nasa_apod.services.code_guardian.analyzers import BaseAnalyzer
-from nasa_apod.services.code_guardian.models import Finding, ScannedFile
+from mcp_factory.services.code_guardian.analyzers import BaseAnalyzer
+from mcp_factory.services.code_guardian.models import Finding, ScannedFile
 
 _TODO_PATTERN = re.compile(r"(?i)\b(?:TODO|FIXME|HACK|XXX|TEMP)\b")
 _TRAILING_WHITESPACE = re.compile(r"[ \t]+$")

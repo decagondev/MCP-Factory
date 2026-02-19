@@ -73,7 +73,7 @@ class ServicePlugin(Protocol):
     """Structural protocol for service plugins.
 
     Any class with a ``register(mcp)`` method satisfies this protocol.
-    The :class:`~nasa_apod.services.registry.ServiceRegistry` uses it
+    The :class:`~mcp_factory.services.registry.ServiceRegistry` uses it
     to wire each service's tools and resources into the FastMCP server.
     """
 

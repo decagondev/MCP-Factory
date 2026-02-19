@@ -2,7 +2,7 @@
 
 Walks a directory tree, filters out ignored paths, reads source
 files within size limits, and produces a list of
-:class:`~nasa_apod.services.code_guardian.models.ScannedFile` objects
+:class:`~mcp_factory.services.code_guardian.models.ScannedFile` objects
 ready for analysis.
 """
 
@@ -12,12 +12,12 @@ import logging
 import os
 from pathlib import Path
 
-from nasa_apod.services.code_guardian.config import (
+from mcp_factory.services.code_guardian.config import (
     IGNORE_DIRECTORIES,
     MAX_FILE_SIZE_BYTES,
     SUPPORTED_EXTENSIONS,
 )
-from nasa_apod.services.code_guardian.models import ScannedFile
+from mcp_factory.services.code_guardian.models import ScannedFile
 
 logger = logging.getLogger(__name__)
 

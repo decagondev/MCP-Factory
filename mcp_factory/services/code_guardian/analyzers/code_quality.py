@@ -11,15 +11,15 @@ from __future__ import annotations
 
 import re
 
-from nasa_apod.services.code_guardian.analyzers import BaseAnalyzer
-from nasa_apod.services.code_guardian.config import (
+from mcp_factory.services.code_guardian.analyzers import BaseAnalyzer
+from mcp_factory.services.code_guardian.config import (
     FILE_SIZE_ERROR_LINES,
     FILE_SIZE_WARN_LINES,
     LINE_LENGTH_LIMIT,
     MAX_FUNCTION_PARAMS,
     MAX_NESTING_DEPTH,
 )
-from nasa_apod.services.code_guardian.models import Finding, ScannedFile
+from mcp_factory.services.code_guardian.models import Finding, ScannedFile
 
 _FUNCTION_SIGNATURES: list[tuple[re.Pattern[str], set[str]]] = [
     (

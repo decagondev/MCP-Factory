@@ -1,7 +1,7 @@
 """Code Guardian service plugin.
 
 Exposes :class:`CodeGuardianService`, which satisfies the
-:class:`~nasa_apod.services.base.ServicePlugin` protocol and
+:class:`~mcp_factory.services.base.ServicePlugin` protocol and
 registers code-analysis tools and resources onto a FastMCP server.
 
 The service performs multi-pass analysis of codebases including
@@ -14,22 +14,22 @@ import os
 
 from mcp.server.fastmcp import FastMCP
 
-from nasa_apod.services.code_guardian.analyzers import AnalyzerRegistry
-from nasa_apod.services.code_guardian.analyzers.code_quality import CodeQualityAnalyzer
-from nasa_apod.services.code_guardian.analyzers.debug_statements import DebugStatementAnalyzer
-from nasa_apod.services.code_guardian.analyzers.dependencies import DependencyAnalyzer
-from nasa_apod.services.code_guardian.analyzers.secrets import SecretAnalyzer
-from nasa_apod.services.code_guardian.analyzers.security_patterns import SecurityPatternAnalyzer
-from nasa_apod.services.code_guardian.analyzers.style import StyleAnalyzer
-from nasa_apod.services.code_guardian.config import (
+from mcp_factory.services.code_guardian.analyzers import AnalyzerRegistry
+from mcp_factory.services.code_guardian.analyzers.code_quality import CodeQualityAnalyzer
+from mcp_factory.services.code_guardian.analyzers.debug_statements import DebugStatementAnalyzer
+from mcp_factory.services.code_guardian.analyzers.dependencies import DependencyAnalyzer
+from mcp_factory.services.code_guardian.analyzers.secrets import SecretAnalyzer
+from mcp_factory.services.code_guardian.analyzers.security_patterns import SecurityPatternAnalyzer
+from mcp_factory.services.code_guardian.analyzers.style import StyleAnalyzer
+from mcp_factory.services.code_guardian.config import (
     OSV_API_BASE_URL,
     OSV_API_KEY,
     OSV_REQUEST_TIMEOUT_SECONDS,
 )
-from nasa_apod.services.code_guardian.formatter import CodeGuardianFormatter
-from nasa_apod.services.code_guardian.osv_client import OsvClient
-from nasa_apod.services.code_guardian.scanner import FileScanner
-from nasa_apod.services.code_guardian.validation import validate_scan_path
+from mcp_factory.services.code_guardian.formatter import CodeGuardianFormatter
+from mcp_factory.services.code_guardian.osv_client import OsvClient
+from mcp_factory.services.code_guardian.scanner import FileScanner
+from mcp_factory.services.code_guardian.validation import validate_scan_path
 
 __all__ = ["CodeGuardianService"]
 

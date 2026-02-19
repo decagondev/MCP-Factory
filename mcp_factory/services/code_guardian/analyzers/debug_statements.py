@@ -11,8 +11,8 @@ from __future__ import annotations
 
 import re
 
-from nasa_apod.services.code_guardian.analyzers import BaseAnalyzer
-from nasa_apod.services.code_guardian.models import Finding, ScannedFile
+from mcp_factory.services.code_guardian.analyzers import BaseAnalyzer
+from mcp_factory.services.code_guardian.models import Finding, ScannedFile
 
 _DEBUG_PATTERNS: list[tuple[re.Pattern[str], str, set[str]]] = [
     (

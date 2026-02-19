@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 from abc import ABC, abstractmethod
 
-from nasa_apod.services.code_guardian.models import Finding, ScanResult, ScannedFile
+from mcp_factory.services.code_guardian.models import Finding, ScanResult, ScannedFile
 
 logger = logging.getLogger(__name__)
 
