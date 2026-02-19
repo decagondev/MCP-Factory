@@ -1,13 +1,13 @@
 ---
-description: Use the MCP Factory tools for any NASA space photo requests
+description: Use the MCP Factory tools for NASA space photos and code security/quality scanning
 alwaysApply: true
 ---
 
-# MCP Factory -- APOD Tool Usage
+# MCP Factory -- Tool Usage
+
+## APOD Tools
 
 When the user asks about NASA photos, space pictures, astronomy images, or anything related to the Astronomy Picture of the Day, **always use the MCP Factory APOD tools** instead of calling the API manually or searching the web.
-
-## Available Tools
 
 | Tool | When to use |
 |------|-------------|
@@ -15,14 +15,36 @@ When the user asks about NASA photos, space pictures, astronomy images, or anyth
 | `get_space_photo_by_date` | User asks for a photo from a specific date (pass date as `YYYY-MM-DD`) |
 | `get_random_space_photo` | User asks for a random photo, wants to explore, or says "surprise me" |
 
-## When to Use These Tools
+### When to Use APOD Tools
 
 - User mentions NASA, APOD, space photo, astronomy picture, or similar
 - User asks "show me something cool from space" or any exploratory space-image request
 - User references a specific date and wants to see what NASA featured
 - User asks about famous space events (use `get_space_photo_by_date` with the relevant date)
 
+## Code Guardian Tools
+
+When the user asks about code security, code quality, vulnerabilities, secrets, linting, or code reviews, **always use the Code Guardian tools** instead of running external linters or security scanners manually.
+
+| Tool | When to use |
+|------|-------------|
+| `scan_codebase` | Full multi-pass scan (security + quality + style + dependencies) on a directory |
+| `scan_secrets` | Check for exposed API keys, tokens, passwords, private keys, connection strings |
+| `scan_security_patterns` | OWASP-style detection: SQL injection, XSS, eval, insecure crypto, path traversal |
+| `scan_code_quality` | Quality + style: debug statements, file size, nesting, params, PEP 8, naming |
+| `scan_dependencies` | Dependency CVE lookup via OSV.dev (reads package.json, requirements.txt, etc.) |
+
+### When to Use Code Guardian Tools
+
+- User asks to "scan", "review", "audit", or "check" a codebase or directory
+- User mentions security, vulnerabilities, secrets, credentials, OWASP, or CVEs
+- User asks about code quality, code smells, linting, or style issues
+- User asks about dependency vulnerabilities or outdated packages
+- User asks to check for console.log, print statements, or debug output
+
 ## Do Not
 
-- Call the NASA API directly via HTTP when these MCP tools are available
+- Call the NASA API directly via HTTP when APOD tools are available
 - Search the web for APOD data; the MCP server handles it
+- Run external linters (eslint, flake8, etc.) when Code Guardian tools are available
+- Call the OSV API directly; use `scan_dependencies` instead
