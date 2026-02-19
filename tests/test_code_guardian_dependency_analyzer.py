@@ -175,6 +175,10 @@ class TestDependencyAnalyzer:
         findings = await analyzer.analyze(files)
         assert len(findings) == 0
 
+
+class TestSeverityMapping:
+    """Verify CVSS-to-severity mapping (synchronous, no async mark)."""
+
     def test_severity_mapping_critical(self) -> None:
         vuln = {"severity": [{"score": "9.5"}]}
         assert DependencyAnalyzer._determine_severity(vuln) == "critical"
