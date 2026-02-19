@@ -1,0 +1,17 @@
+[project]
+name = "mcp-factory"
+version = "0.1.0"
+description = "Extensible MCP server framework with a service plugin architecture. Ships with NASA APOD as a reference service."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "httpx>=0.28.1",
+    "mcp[cli]>=1.26.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.25",
+    "respx>=0.22",
+]

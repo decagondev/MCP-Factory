@@ -1,0 +1,52 @@
+---
+description: MCP Factory architecture, module map, and key abstractions
+alwaysApply: true
+---
+
+# MCP Factory Architecture Context
+
+MCP Factory is an extensible MCP server framework built on FastMCP with a service plugin architecture. Use this context when navigating, modifying, or extending the codebase.
+
+## Module Map
+
+| Path | Purpose |
+|------|---------|
+| `main.py` | Entry point. Imports `mcp` from `nasa_apod.server` and calls `mcp.run()`. |
+| `nasa_apod/config.py` | Global server config. Contains `SERVER_NAME`. |
+| `nasa_apod/server.py` | Creates `FastMCP`, builds `ServiceRegistry`, adds plugins, applies them. |
+| `nasa_apod/services/base.py` | Abstract base classes: `BaseAPIClient`, `BaseFormatter`, `ServicePlugin` protocol. |
+| `nasa_apod/services/registry.py` | `ServiceRegistry` -- collects and applies plugins to FastMCP. |
+| `nasa_apod/services/apod/__init__.py` | `ApodService` -- implements `ServicePlugin`, registers 3 tools + 1 resource. |
+| `nasa_apod/services/apod/config.py` | APOD constants: base URL, API key (from env), first date, timeout. |
+| `nasa_apod/services/apod/client.py` | `ApodClient(BaseAPIClient)` -- async HTTP client for NASA APOD API. |
+| `nasa_apod/services/apod/formatter.py` | `ApodFormatter(BaseFormatter)` -- renders Markdown from APOD data. |
+| `nasa_apod/services/apod/validation.py` | `validate_apod_date()` -- date parsing and range validation. |
+
+## Key Abstractions
+
+- **BaseAPIClient** (`services/base.py`): ABC with `__init__(base_url, api_key, timeout)` and abstract `fetch(**params) -> dict | None`.
+- **BaseFormatter** (`services/base.py`): ABC with abstract `format(data, **kwargs) -> str`.
+- **ServicePlugin** (`services/base.py`): Protocol requiring only `register(mcp: FastMCP) -> None`.
+- **ServiceRegistry** (`services/registry.py`): Collects plugins via `add()`, applies via `apply_all(mcp)`.
+
+## Conventions
+
+- All service-specific code lives under `nasa_apod/services/<service_name>/`.
+- Tools are defined as closures inside `ServiceClass.register(mcp)`.
+- Tools return strings, never raise exceptions.
+- HTTP errors produce `None` from `client.fetch()`. Tools check for `None` and return error strings.
+- Secrets come from environment variables, never hardcoded.
+- Logging via `logging` module, never `print()`.
+- Tests use `pytest`, `pytest-asyncio`, and `respx` for HTTP mocking.
+
+## Test Files
+
+| Test File | Covers |
+|-----------|--------|
+| `tests/test_base.py` | ABC contracts |
+| `tests/test_registry.py` | ServiceRegistry |
+| `tests/test_apod_config.py` | APOD config |
+| `tests/test_apod_client.py` | ApodClient (mocked HTTP) |
+| `tests/test_apod_formatter.py` | ApodFormatter output |
+| `tests/test_apod_validation.py` | Date validation |
+| `tests/test_e2e.py` | Full server bootstrap + tool execution |

@@ -1,0 +1,28 @@
+---
+description: Use the MCP Factory tools for any NASA space photo requests
+alwaysApply: true
+---
+
+# MCP Factory -- APOD Tool Usage
+
+When the user asks about NASA photos, space pictures, astronomy images, or anything related to the Astronomy Picture of the Day, **always use the MCP Factory APOD tools** instead of calling the API manually or searching the web.
+
+## Available Tools
+
+| Tool | When to use |
+|------|-------------|
+| `get_todays_space_photo` | User asks for today's photo, the current APOD, or "what's NASA showing today" |
+| `get_space_photo_by_date` | User asks for a photo from a specific date (pass date as `YYYY-MM-DD`) |
+| `get_random_space_photo` | User asks for a random photo, wants to explore, or says "surprise me" |
+
+## When to Use These Tools
+
+- User mentions NASA, APOD, space photo, astronomy picture, or similar
+- User asks "show me something cool from space" or any exploratory space-image request
+- User references a specific date and wants to see what NASA featured
+- User asks about famous space events (use `get_space_photo_by_date` with the relevant date)
+
+## Do Not
+
+- Call the NASA API directly via HTTP when these MCP tools are available
+- Search the web for APOD data; the MCP server handles it

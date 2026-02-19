@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Building an MCP Server &mdash; Step-by-Step Guide</title>
+
+<!-- Highlight.js for code syntax highlighting (Tokyo Night dark theme) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/tokyo-night-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/json.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/bash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/powershell.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/markdown.min.js"></script>
+
+<!-- Lucide Icons -->
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<style>
+  /* ============================================================
+     CSS CUSTOM PROPERTIES
+     ============================================================ */
+  :root {
+    --bg-primary: #0d1117;
+    --bg-secondary: #161b22;
+    --bg-tertiary: #1c2128;
+    --bg-card: #1c2128;
+    --bg-code: #0d1117;
+    --border: #30363d;
+    --border-accent: #388bfd44;
+    --text-primary: #e6edf3;
+    --text-secondary: #8b949e;
+    --text-muted: #6e7681;
+    --accent-blue: #58a6ff;
+    --accent-purple: #bc8cff;
+    --accent-green: #3fb950;
+    --accent-orange: #d29922;
+    --accent-red: #f85149;
+    --accent-cyan: #76e3ea;
+    --accent-pink: #f778ba;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    --slide-max-width: 1100px;
+    --transition-speed: 0.4s;
+  }
+
+  /* ============================================================
+     RESET & BASE
+     ============================================================ */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html {
+    font-size: 18px;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  /* ============================================================
+     SLIDE CONTAINER
+     ============================================================ */
+  .deck {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 3rem 4rem;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(60px);
+    transition: opacity var(--transition-speed) ease, transform var(--transition-speed) ease, visibility 0s var(--transition-speed);
+    overflow-y: auto;
+  }
+
+  .slide.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+    transition: opacity var(--transition-speed) ease, transform var(--transition-speed) ease, visibility 0s 0s;
+  }
+
+  .slide.prev {
+    transform: translateX(-60px);
+  }
+
+  .slide-inner {
+    width: 100%;
+    max-width: var(--slide-max-width);
+  }
+
+  /* ============================================================
+     TYPOGRAPHY
+     ============================================================ */
+  h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+  }
+
+  h2 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    margin-bottom: 0.75rem;
+  }
+
+  h3 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--accent-blue);
+  }
+
+  p, li {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+  }
+
+  .subtitle {
+    font-size: 1.3rem;
+    color: var(--text-secondary);
+    font-weight: 400;
+    margin-bottom: 2rem;
+  }
+
+  .label {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    margin-bottom: 1rem;
+  }
+
+  .label-blue   { background: #58a6ff22; color: var(--accent-blue); border: 1px solid #58a6ff44; }
+  .label-green  { background: #3fb95022; color: var(--accent-green); border: 1px solid #3fb95044; }
+  .label-purple { background: #bc8cff22; color: var(--accent-purple); border: 1px solid #bc8cff44; }
+  .label-orange { background: #d2992222; color: var(--accent-orange); border: 1px solid #d2992244; }
+  .label-cyan   { background: #76e3ea22; color: var(--accent-cyan); border: 1px solid #76e3ea44; }
+  .label-pink   { background: #f778ba22; color: var(--accent-pink); border: 1px solid #f778ba44; }
+
+  strong { color: var(--text-primary); font-weight: 600; }
+
+  a { color: var(--accent-blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ============================================================
+     CODE BLOCKS
+     ============================================================ */
+  pre {
+    background: var(--bg-code) !important;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    margin: 1rem 0;
+    overflow-x: auto;
+    font-size: 0.85rem;
+    line-height: 1.65;
+  }
+
+  pre code {
+    font-family: var(--font-mono);
+    background: none !important;
+    padding: 0 !important;
+  }
+
+  code {
+    font-family: var(--font-mono);
+    background: var(--bg-tertiary);
+    padding: 0.15em 0.45em;
+    border-radius: 6px;
+    font-size: 0.9em;
+    color: var(--accent-cyan);
+  }
+
+  .code-filename {
+    display: inline-block;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    padding: 0.35rem 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-bottom: -1px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .code-filename + pre {
+    border-top-left-radius: 0;
+    margin-top: 0;
+  }
+
+  /* ============================================================
+     CARDS & GRIDS
+     ============================================================ */
+  .card-grid {
+    display: grid;
+    gap: 1.25rem;
+    margin: 1.5rem 0;
+  }
+
+  .card-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .card-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: border-color 0.2s;
+  }
+
+  .card:hover { border-color: var(--accent-blue); }
+
+  .card .icon-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.75rem;
+  }
+
+  .card h3 { font-size: 1.1rem; margin-bottom: 0.4rem; }
+  .card p  { font-size: 0.95rem; }
+
+  .icon-blue   { background: #58a6ff18; color: var(--accent-blue); }
+  .icon-green  { background: #3fb95018; color: var(--accent-green); }
+  .icon-purple { background: #bc8cff18; color: var(--accent-purple); }
+  .icon-orange { background: #d2992218; color: var(--accent-orange); }
+  .icon-cyan   { background: #76e3ea18; color: var(--accent-cyan); }
+  .icon-pink   { background: #f778ba18; color: var(--accent-pink); }
+  .icon-red    { background: #f8514918; color: var(--accent-red); }
+
+  /* ============================================================
+     LISTS
+     ============================================================ */
+  ul, ol {
+    padding-left: 1.5rem;
+    margin: 0.75rem 0;
+  }
+
+  li { margin-bottom: 0.5rem; }
+
+  .checklist {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  .checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .checklist li i {
+    flex-shrink: 0;
+    margin-top: 0.2rem;
+    color: var(--accent-green);
+  }
+
+  /* ============================================================
+     TABLES
+     ============================================================ */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.95rem;
+  }
+
+  th, td {
+    text-align: left;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  td code {
+    font-size: 0.85em;
+  }
+
+  /* ============================================================
+     FLOW / DIAGRAM
+     ============================================================ */
+  .flow-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 1.5rem 0;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .flow-step {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  .flow-arrow {
+    color: var(--text-muted);
+    font-size: 1.2rem;
+  }
+
+  /* ============================================================
+     SPECIAL SLIDES
+     ============================================================ */
+
+  /* Title slide */
+  .slide-title {
+    text-align: center;
+  }
+
+  .slide-title h1 {
+    font-size: 3.6rem;
+    line-height: 1.25;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    padding-bottom: 0.15em;
+    margin-bottom: 0.75rem;
+  }
+
+  .slide-title .hero-icon {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+    display: block;
+  }
+
+  /* Comparison columns */
+  .compare-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin: 1.5rem 0;
+  }
+
+  .compare-col {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+
+  .compare-col h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* Callout boxes */
+  .callout {
+    display: flex;
+    gap: 0.75rem;
+    background: var(--bg-card);
+    border-left: 3px solid var(--accent-blue);
+    border-radius: 0 10px 10px 0;
+    padding: 1rem 1.25rem;
+    margin: 1rem 0;
+    font-size: 0.95rem;
+    align-items: flex-start;
+  }
+
+  .callout i { flex-shrink: 0; margin-top: 2px; color: var(--accent-blue); }
+
+  .callout-green  { border-left-color: var(--accent-green); }
+  .callout-green i { color: var(--accent-green); }
+
+  .callout-orange  { border-left-color: var(--accent-orange); }
+  .callout-orange i { color: var(--accent-orange); }
+
+  /* Tab switcher for client configs */
+  .tabs {
+    display: flex;
+    gap: 0.25rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0;
+  }
+
+  .tab-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 0.6rem 1.1rem;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+  }
+
+  .tab-btn:hover { color: var(--text-primary); }
+  .tab-btn.active { color: var(--accent-blue); border-bottom-color: var(--accent-blue); }
+
+  .tab-panel {
+    display: none;
+    padding-top: 0.25rem;
+  }
+
+  .tab-panel.active { display: block; }
+
+  /* ============================================================
+     STEP INDICATOR (top left of step slides)
+     ============================================================ */
+  .step-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 9999px;
+    padding: 0.3rem 1rem 0.3rem 0.6rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+  }
+
+  .step-badge .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  /* ============================================================
+     NAVIGATION
+     ============================================================ */
+  .nav-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 2rem;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border);
+    z-index: 100;
+    user-select: none;
+  }
+
+  .nav-bar button {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    border-radius: 8px;
+    padding: 0.4rem 1rem;
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .nav-bar button:hover {
+    background: var(--bg-card);
+    border-color: var(--accent-blue);
+  }
+
+  .nav-bar button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .nav-bar button:disabled:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--border);
+  }
+
+  .slide-counter {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Progress bar */
+  .progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
+    z-index: 200;
+    transition: width 0.35s ease;
+  }
+
+  /* ============================================================
+     RESPONSIVE
+     ============================================================ */
+  @media (max-width: 900px) {
+    .slide { padding: 2rem 1.5rem; }
+    h1 { font-size: 2.2rem; }
+    h2 { font-size: 1.6rem; }
+    .slide-title h1 { font-size: 2.4rem; }
+    .card-grid.cols-2, .card-grid.cols-3, .compare-cols {
+      grid-template-columns: 1fr;
+    }
+    pre { font-size: 0.78rem; padding: 1rem; }
+  }
+
+  /* ============================================================
+     SCROLLBAR (for slides with lots of code)
+     ============================================================ */
+  .slide::-webkit-scrollbar { width: 6px; }
+  .slide::-webkit-scrollbar-track { background: transparent; }
+  .slide::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  pre::-webkit-scrollbar { height: 6px; }
+  pre::-webkit-scrollbar-track { background: transparent; }
+  pre::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* Two-col layout helper */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: start;
+  }
+
+  @media (max-width: 900px) {
+    .two-col { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<div class="deck" id="deck">
+
+<!-- ============================================================
+     SLIDE 1: TITLE
+     ============================================================ -->
+<section class="slide slide-title" data-slide="0">
+  <div class="slide-inner">
+    <span class="hero-icon"><i data-lucide="satellite" style="width:72px;height:72px;color:var(--accent-blue);"></i></span>
+    <h1>Building an MCP Server</h1>
+    <p class="subtitle">A step-by-step guide to building a NASA APOD server<br>with FastMCP &amp; Python</p>
+    <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;margin-top:1rem;">
+      <span class="label label-blue"><i data-lucide="code-2" style="width:14px;height:14px;vertical-align:-2px;"></i>&ensp;Python</span>
+      <span class="label label-purple"><i data-lucide="plug" style="width:14px;height:14px;vertical-align:-2px;"></i>&ensp;MCP Protocol</span>
+      <span class="label label-green"><i data-lucide="rocket" style="width:14px;height:14px;vertical-align:-2px;"></i>&ensp;NASA API</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 2: WHAT WE'RE BUILDING
+     ============================================================ -->
+<section class="slide" data-slide="1">
+  <div class="slide-inner">
+    <span class="label label-blue">Overview</span>
+    <h2>What We're Building</h2>
+    <p>A <strong>Model Context Protocol (MCP)</strong> server that gives AI agents live access to NASA's Astronomy Picture of the Day API.</p>
+
+    <div class="card-grid cols-3" style="margin-top:1.5rem;">
+      <div class="card">
+        <div class="icon-circle icon-blue"><i data-lucide="sun" style="width:22px;height:22px;"></i></div>
+        <h3>Today's Photo</h3>
+        <p>Fetch the current APOD with title, explanation, and media link.</p>
+      </div>
+      <div class="card">
+        <div class="icon-circle icon-purple"><i data-lucide="calendar" style="width:22px;height:22px;"></i></div>
+        <h3>Photo by Date</h3>
+        <p>Retrieve any APOD entry from the 30+ year archive by date.</p>
+      </div>
+      <div class="card">
+        <div class="icon-circle icon-green"><i data-lucide="shuffle" style="width:22px;height:22px;"></i></div>
+        <h3>Random Photo</h3>
+        <p>Discover a random photo from NASA's full archive.</p>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:1rem;">
+      <i data-lucide="info" style="width:18px;height:18px;"></i>
+      <span>We demo with <strong>Cursor</strong> as the primary MCP client, with optional setup for <strong>Claude Code</strong> and <strong>Claude Desktop</strong>.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 3: ROADMAP
+     ============================================================ -->
+<section class="slide" data-slide="2">
+  <div class="slide-inner">
+    <span class="label label-cyan">Agenda</span>
+    <h2>Roadmap</h2>
+    <div class="card-grid cols-2" style="margin-top:1rem;">
+      <div class="card" style="display:flex;gap:1rem;align-items:flex-start;">
+        <div class="icon-circle icon-blue" style="flex-shrink:0;"><i data-lucide="download" style="width:20px;height:20px;"></i></div>
+        <div><h3 style="color:var(--text-primary);">Step 0 &mdash; Setup</h3><p>Install dependencies, scaffold project</p></div>
+      </div>
+      <div class="card" style="display:flex;gap:1rem;align-items:flex-start;">
+        <div class="icon-circle icon-green" style="flex-shrink:0;"><i data-lucide="server" style="width:20px;height:20px;"></i></div>
+        <div><h3 style="color:var(--text-primary);">Step 1 &mdash; Minimal Server</h3><p>Three lines to a running MCP server</p></div>
+      </div>
+      <div class="card" style="display:flex;gap:1rem;align-items:flex-start;">
+        <div class="icon-circle icon-purple" style="flex-shrink:0;"><i data-lucide="globe" style="width:20px;height:20px;"></i></div>
+        <div><h3 style="color:var(--text-primary);">Step 2 &mdash; API Helper</h3><p>Async HTTP requests to NASA</p></div>
+      </div>
+      <div class="card" style="display:flex;gap:1rem;align-items:flex-start;">
+        <div class="icon-circle icon-orange" style="flex-shrink:0;"><i data-lucide="wrench" style="width:20px;height:20px;"></i></div>
+        <div><h3 style="color:var(--text-primary);">Steps 3-5 &mdash; Tools</h3><p>Today's photo, by date, random</p></div>
+      </div>
+      <div class="card" style="display:flex;gap:1rem;align-items:flex-start;">
+        <div class="icon-circle icon-cyan" style="flex-shrink:0;"><i data-lucide="book-open" style="width:20px;height:20px;"></i></div>
+        <div><h3 style="color:var(--text-primary);">Step 6 &mdash; Resource</h3><p>Read-only data for famous space dates</p></div>
+      </div>
+      <div class="card" style="display:flex;gap:1rem;align-items:flex-start;">
+        <div class="icon-circle icon-pink" style="flex-shrink:0;"><i data-lucide="play" style="width:20px;height:20px;"></i></div>
+        <div><h3 style="color:var(--text-primary);">Step 7 &mdash; Run &amp; Test</h3><p>Connect to Cursor, Claude Code, Desktop</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 4: STEP 0 - SETUP
+     ============================================================ -->
+<section class="slide" data-slide="3">
+  <div class="slide-inner">
+    <div class="step-badge"><span class="num" style="background:var(--accent-blue);color:#fff;">0</span> Setup</div>
+    <h2>Install Dependencies</h2>
+
+    <div class="two-col">
+      <div>
+        <h3><i data-lucide="zap" style="width:18px;height:18px;vertical-align:-3px;"></i> Using uv (recommended)</h3>
+        <pre><code class="language-bash">uv init nasa-mcp
+cd nasa-mcp
+uv add "mcp[cli]" httpx</code></pre>
+      </div>
+      <div>
+        <h3><i data-lucide="package" style="width:18px;height:18px;vertical-align:-3px;"></i> Using pip</h3>
+        <pre><code class="language-bash">mkdir nasa-mcp
+cd nasa-mcp
+python -m venv venv
+source venv/bin/activate
+pip install "mcp[cli]" httpx</code></pre>
+      </div>
+    </div>
+
+    <div class="callout callout-green" style="margin-top:1rem;">
+      <i data-lucide="terminal" style="width:18px;height:18px;"></i>
+      <span>On Windows, activate with <code>venv\Scripts\activate</code> instead.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 5: STEP 1 - MINIMAL SERVER
+     ============================================================ -->
+<section class="slide" data-slide="4">
+  <div class="slide-inner">
+    <div class="step-badge"><span class="num" style="background:var(--accent-green);color:#fff;">1</span> Minimal Server</div>
+    <h2>Three Lines to a Running Server</h2>
+    <p style="margin-bottom:1rem;">Create the absolute minimum MCP server that runs and waits for client connections.</p>
+
+    <div class="code-filename">nasa_server.py</div>
+    <pre><code class="language-python">from mcp.server.fastmcp import FastMCP
+
+mcp = FastMCP("nasa-apod")
+
+
+def main():
+    """Run the MCP server."""
+    mcp.run(transport="stdio")
+
+
+if __name__ == "__main__":
+    main()</code></pre>
+
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:0.75rem;">
+      <div class="callout" style="flex:1;min-width:260px;">
+        <i data-lucide="box" style="width:18px;height:18px;"></i>
+        <span><code>FastMCP("nasa-apod")</code> creates a named server instance</span>
+      </div>
+      <div class="callout" style="flex:1;min-width:260px;">
+        <i data-lucide="radio" style="width:18px;height:18px;"></i>
+        <span><code>transport="stdio"</code> &mdash; local communication mode</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 6: STEP 2 - API HELPER
+     ============================================================ -->
+<section class="slide" data-slide="5">
+  <div class="slide-inner">
+    <div class="step-badge"><span class="num" style="background:var(--accent-purple);color:#fff;">2</span> API Helper</div>
+    <h2>Async HTTP Requests to NASA</h2>
+
+    <pre><code class="language-python">import httpx
+from typing import Optional
+
+NASA_API_BASE = "https://api.nasa.gov/planetary/apod"
+API_KEY = "DEMO_KEY"  # Free tier: 30 requests/hour
+
+
+async def fetch_apod(date: Optional[str] = None) -> dict | None:
+    """Fetch Astronomy Picture of the Day from NASA."""
+    params = {"api_key": API_KEY}
+    if date:
+        params["date"] = date
+
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(
+                NASA_API_BASE, params=params, timeout=30.0
+            )
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPError:
+            return None</code></pre>
+
+    <div class="card-grid cols-3" style="margin-top:0.75rem;">
+      <div class="card" style="padding:1rem;">
+        <h3 style="font-size:0.95rem;"><i data-lucide="zap" style="width:16px;height:16px;vertical-align:-2px;"></i> async/await</h3>
+        <p style="font-size:0.85rem;">Non-blocking I/O while waiting for NASA</p>
+      </div>
+      <div class="card" style="padding:1rem;">
+        <h3 style="font-size:0.95rem;"><i data-lucide="shield" style="width:16px;height:16px;vertical-align:-2px;"></i> Error Handling</h3>
+        <p style="font-size:0.85rem;">Graceful fallback on network failures</p>
+      </div>
+      <div class="card" style="padding:1rem;">
+        <h3 style="font-size:0.95rem;"><i data-lucide="type" style="width:16px;height:16px;vertical-align:-2px;"></i> Type Hints</h3>
+        <p style="font-size:0.85rem;"><code>Optional[str]</code>, <code>dict | None</code></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 7: STEP 3 - FIRST TOOL
+     ============================================================ -->
+<section class="slide" data-slide="6">
+  <div class="slide-inner">
+    <div class="step-badge"><span class="num" style="background:var(--accent-orange);color:#fff;">3</span> First Tool</div>
+    <h2>Your First MCP Tool</h2>
+
+    <pre><code class="language-python">@mcp.tool()
+async def get_todays_space_photo() -> str:
+    """
+    Get today's Astronomy Picture of the Day from NASA.
+
+    Returns a beautiful space photo with detailed explanation
+    from NASA astronomers.
+    """
+    data = await fetch_apod()
+
+    if not data:
+        return "Unable to fetch today's space photo."
+
+    result = f"""**{data['title']}**
+Date: {data['date']}
+
+**What you're seeing:**
+{data['explanation']}
+
+**Media:** {data['media_type'].title()}
+Link: {data['url']}
+"""
+    if 'copyright' in data:
+        result += f"\nCopyright: {data['copyright']}"
+
+    return result</code></pre>
+
+    <div class="callout callout-orange" style="margin-top:0.5rem;">
+      <i data-lucide="message-square" style="width:18px;height:18px;"></i>
+      <span>The <strong>docstring is crucial</strong> &mdash; the AI agent reads it to decide when to call this tool.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 8: HOW TOOLS WORK
+     ============================================================ -->
+<section class="slide" data-slide="7">
+  <div class="slide-inner">
+    <span class="label label-blue">Concepts</span>
+    <h2>How MCP Tools Work</h2>
+    <p>When you register a function with <code>@mcp.tool()</code>, here is what happens at runtime:</p>
+
+    <div class="flow-row" style="margin-top:2rem;">
+      <div class="flow-step" style="border-color:var(--accent-blue);"><i data-lucide="user" style="width:18px;height:18px;color:var(--accent-blue);"></i> User asks a question</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-step" style="border-color:var(--accent-purple);"><i data-lucide="bot" style="width:18px;height:18px;color:var(--accent-purple);"></i> Agent reads docstring</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-step" style="border-color:var(--accent-green);"><i data-lucide="send" style="width:18px;height:18px;color:var(--accent-green);"></i> Agent calls tool via JSON-RPC</div>
+    </div>
+    <div class="flow-row">
+      <div class="flow-step" style="border-color:var(--accent-orange);"><i data-lucide="cpu" style="width:18px;height:18px;color:var(--accent-orange);"></i> FastMCP runs your function</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-step" style="border-color:var(--accent-cyan);"><i data-lucide="arrow-left" style="width:18px;height:18px;color:var(--accent-cyan);"></i> Result returned to agent</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-step" style="border-color:var(--accent-pink);"><i data-lucide="message-circle" style="width:18px;height:18px;color:var(--accent-pink);"></i> Agent shows result to user</div>
+    </div>
+
+    <div class="callout" style="margin-top:1.5rem;">
+      <i data-lucide="lightbulb" style="width:18px;height:18px;"></i>
+      <span>FastMCP handles all the protocol plumbing &mdash; you just write normal Python functions.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 9: STEP 4 - PHOTO BY DATE
+     ============================================================ -->
+<section class="slide" data-slide="8">
+  <div class="slide-inner">
+    <div class="step-badge"><span class="num" style="background:var(--accent-cyan);color:#000;">4</span> Photo by Date</div>
+    <h2>Parameters &amp; Validation</h2>
+
+    <pre><code class="language-python">@mcp.tool()
+async def get_space_photo_by_date(date: str) -> str:
+    """
+    Get the Astronomy Picture of the Day for a specific date.
+
+    Args:
+        date: Date in YYYY-MM-DD format (e.g., "2024-01-15")
+              Must be between 1995-06-16 (first APOD) and today.
+    """
+    try:
+        parsed_date = datetime.strptime(date, "%Y-%m-%d")
+        first_apod = datetime(1995, 6, 16)
+        today = datetime.now()
+
+        if parsed_date < first_apod:
+            return f"Date must be after June 16, 1995. You requested: {date}"
+        if parsed_date > today:
+            return f"Date cannot be in the future."
+    except ValueError:
+        return f"Invalid date format. Please use YYYY-MM-DD."
+
+    data = await fetch_apod(date)
+    if not data:
+        return f"Unable to fetch space photo for {date}"
+    # ... format and return result</code></pre>
+
+    <div class="card-grid cols-2" style="margin-top:0.75rem;">
+      <div class="card" style="padding:1rem;">
+        <h3 style="font-size:0.95rem;"><i data-lucide="check-circle" style="width:16px;height:16px;vertical-align:-2px;"></i> Type from signature</h3>
+        <p style="font-size:0.85rem;">Agent sees <code>date: str</code> and provides the value automatically</p>
+      </div>
+      <div class="card" style="padding:1rem;">
+        <h3 style="font-size:0.95rem;"><i data-lucide="shield-check" style="width:16px;height:16px;vertical-align:-2px;"></i> Your validation</h3>
+        <p style="font-size:0.85rem;">Date format, range checks, and clear error messages</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 10: STEP 5 - RANDOM PHOTO
+     ============================================================ -->
+<section class="slide" data-slide="9">
+  <div class="slide-inner">
+    <div class="step-badge"><span class="num" style="background:var(--accent-pink);color:#fff;">5</span> Random Photo</div>
+    <h2>Generating Random Parameters</h2>
+
+    <pre><code class="language-python">@mcp.tool()
+async def get_random_space_photo() -> str:
+    """
+    Get a random Astronomy Picture of the Day from NASA's archives.
+
+    Selects a random date between June 16, 1995 (first APOD) and today.
+    """
+    first_apod = datetime(1995, 6, 16)
+    today = datetime.now()
+    days_diff = (today - first_apod).days
+
+    random_days = random.randint(0, days_diff)
+    random_date = first_apod + timedelta(days=random_days)
+    random_date_str = random_date.strftime("%Y-%m-%d")
+
+    data = await fetch_apod(random_date_str)
+    if not data:
+        return "Unable to fetch random space photo. Please try again."
+    # ... format and return result</code></pre>
+
+    <div class="callout" style="margin-top:0.75rem;">
+      <i data-lucide="calendar-range" style="width:18px;height:18px;"></i>
+      <span><strong>Date arithmetic:</strong> Calculate days between first APOD (1995-06-16) and today, pick a random offset, add it back.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 11: STEP 6 - RESOURCES
+     ============================================================ -->
+<section class="slide" data-slide="10">
+  <div class="slide-inner">
+    <div class="step-badge"><span class="num" style="background:var(--accent-green);color:#fff;">6</span> Resources</div>
+    <h2>Read-Only Data for Agents</h2>
+
+    <pre><code class="language-python">@mcp.resource("space://events/famous-dates")
+def famous_space_dates() -> str:
+    """List of famous space exploration dates to explore."""
+    return """
+Famous Space Dates to Explore:
+
+First APOD: 1995-06-16
+Moon Landing: 1969-07-20
+Hubble Launch: 1990-04-24
+Mars Rover Landing: 2021-02-18
+First Image of Black Hole: 2019-04-10
+Cassini Saturn Arrival: 2004-07-01
+James Webb First Image: 2022-07-12
+"""</code></pre>
+
+    <div class="compare-cols" style="margin-top:1rem;">
+      <div class="compare-col">
+        <h3 style="color:var(--accent-orange);"><i data-lucide="wrench" style="width:18px;height:18px;"></i> Tools</h3>
+        <p>Agent can <strong>call</strong> them (active)</p>
+        <p style="font-size:0.9rem;">Functions that execute logic, call APIs, process data</p>
+      </div>
+      <div class="compare-col">
+        <h3 style="color:var(--accent-cyan);"><i data-lucide="book-open" style="width:18px;height:18px;"></i> Resources</h3>
+        <p>Agent can <strong>read</strong> them (passive)</p>
+        <p style="font-size:0.9rem;">Static data like config, docs, reference lists</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 12: STEP 7 - CONNECT TO CURSOR
+     ============================================================ -->
+<section class="slide" data-slide="11">
+  <div class="slide-inner">
+    <div class="step-badge"><span class="num" style="background:var(--accent-blue);color:#fff;">7</span> Run &amp; Test</div>
+    <h2><i data-lucide="mouse-pointer-click" style="width:28px;height:28px;vertical-align:-5px;color:var(--accent-blue);"></i> Connect to Cursor</h2>
+    <p>Cursor has built-in MCP support. Create <code>.cursor/mcp.json</code> in your project root:</p>
+
+    <div class="tabs" id="cursorTabs">
+      <button class="tab-btn active" data-tab="cursor-mac">macOS / Linux</button>
+      <button class="tab-btn" data-tab="cursor-win">Windows</button>
+    </div>
+    <div class="tab-panel active" id="cursor-mac">
+      <pre><code class="language-json">{
+  "mcpServers": {
+    "nasa-apod": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "/absolute/path/to/nasa-mcp",
+        "main.py"
+      ]
+    }
+  }
+}</code></pre>
+    </div>
+    <div class="tab-panel" id="cursor-win">
+      <pre><code class="language-json">{
+  "mcpServers": {
+    "nasa-apod": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "C:\\Users\\YourName\\source\\repos\\nasa-mcp",
+        "main.py"
+      ]
+    }
+  }
+}</code></pre>
+    </div>
+
+    <ul class="checklist" style="margin-top:1rem;">
+      <li><i data-lucide="check" style="width:18px;height:18px;"></i> Open <strong>Settings &gt; MCP</strong> &mdash; verify green status indicator</li>
+      <li><i data-lucide="check" style="width:18px;height:18px;"></i> Open Agent chat (<kbd>Ctrl+I</kbd> / <kbd>Cmd+I</kbd>) and ask about space photos</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 13: CURSOR RULE (OPTIONAL)
+     ============================================================ -->
+<section class="slide" data-slide="12">
+  <div class="slide-inner">
+    <span class="label label-blue">Cursor Bonus</span>
+    <h2><i data-lucide="sparkles" style="width:28px;height:28px;vertical-align:-5px;color:var(--accent-purple);"></i> Add a Cursor Rule</h2>
+    <p>Help the agent always reach for your MCP tools instead of searching the web.</p>
+
+    <div class="code-filename">.cursor/rules/nasa-apod-mcp.mdc</div>
+    <pre><code class="language-markdown">---
+description: Use the nasa-apod MCP server tools for any NASA space photo requests
+alwaysApply: true
+---
+
+# NASA APOD MCP Server Usage
+
+When the user asks about NASA photos, space pictures, or astronomy images,
+**always use the nasa-apod MCP tools** instead of calling the API manually.
+
+## Available Tools
+
+| Tool                      | When to use                        |
+|---------------------------|------------------------------------|
+| get_todays_space_photo    | Today's photo, current APOD        |
+| get_space_photo_by_date   | Photo from a specific YYYY-MM-DD   |
+| get_random_space_photo    | Random photo, "surprise me"        |</code></pre>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 14: CLAUDE CODE (OPTIONAL)
+     ============================================================ -->
+<section class="slide" data-slide="13">
+  <div class="slide-inner">
+    <span class="label label-orange">Optional</span>
+    <h2><i data-lucide="terminal" style="width:28px;height:28px;vertical-align:-5px;color:var(--accent-orange);"></i> Connect to Claude Code</h2>
+    <p>Anthropic's CLI-based AI coding agent. Perfect if you prefer working in the terminal.</p>
+
+    <h3 style="margin-top:1.25rem;">Register the server</h3>
+    <div class="tabs" id="ccTabs">
+      <button class="tab-btn active" data-tab="cc-mac">macOS / Linux</button>
+      <button class="tab-btn" data-tab="cc-win">Windows</button>
+    </div>
+    <div class="tab-panel active" id="cc-mac">
+      <pre><code class="language-bash">claude mcp add nasa-apod -- uv run --directory /absolute/path/to/nasa-mcp main.py</code></pre>
+    </div>
+    <div class="tab-panel" id="cc-win">
+      <pre><code class="language-powershell">claude mcp add nasa-apod -- uv run --directory C:\Users\YourName\source\repos\nasa-mcp main.py</code></pre>
+    </div>
+
+    <h3 style="margin-top:1.25rem;">Verify</h3>
+    <pre><code class="language-bash">claude mcp list</code></pre>
+
+    <div class="callout" style="margin-top:0.75rem;">
+      <i data-lucide="file-json" style="width:18px;height:18px;"></i>
+      <span>Manual config: edit <code>~/.claude/mcp_servers.json</code> with the same command/args structure.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 15: CLAUDE DESKTOP (OPTIONAL)
+     ============================================================ -->
+<section class="slide" data-slide="14">
+  <div class="slide-inner">
+    <span class="label label-purple">Optional</span>
+    <h2><i data-lucide="monitor" style="width:28px;height:28px;vertical-align:-5px;color:var(--accent-purple);"></i> Connect to Claude Desktop</h2>
+    <p>GUI-based chat experience outside of your code editor.</p>
+
+    <h3 style="margin-top:1.25rem;">Config file locations</h3>
+    <table>
+      <thead><tr><th>OS</th><th>Config Path</th></tr></thead>
+      <tbody>
+        <tr><td><i data-lucide="apple" style="width:16px;height:16px;vertical-align:-2px;"></i> macOS</td><td><code>~/Library/Application Support/Claude/claude_desktop_config.json</code></td></tr>
+        <tr><td><i data-lucide="monitor" style="width:16px;height:16px;vertical-align:-2px;"></i> Windows</td><td><code>%APPDATA%\Claude\claude_desktop_config.json</code></td></tr>
+        <tr><td><i data-lucide="terminal" style="width:16px;height:16px;vertical-align:-2px;"></i> Linux</td><td><code>~/.config/Claude/claude_desktop_config.json</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="margin-top:1.25rem;">Add the server entry</h3>
+    <pre><code class="language-json">{
+  "mcpServers": {
+    "nasa-apod": {
+      "command": "uv",
+      "args": [
+        "run", "--directory",
+        "/absolute/path/to/nasa-mcp", "main.py"
+      ]
+    }
+  }
+}</code></pre>
+
+    <div class="callout callout-green" style="margin-top:0.5rem;">
+      <i data-lucide="rotate-ccw" style="width:18px;height:18px;"></i>
+      <span>Restart Claude Desktop after saving the config. The server is detected on launch.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 16: TEST PROMPTS
+     ============================================================ -->
+<section class="slide" data-slide="15">
+  <div class="slide-inner">
+    <span class="label label-green">Try It</span>
+    <h2><i data-lucide="message-circle" style="width:28px;height:28px;vertical-align:-5px;color:var(--accent-green);"></i> Test Prompts</h2>
+    <p>These work in <strong>any</strong> MCP client &mdash; Cursor, Claude Code, or Claude Desktop.</p>
+
+    <div class="card-grid cols-2" style="margin-top:1.5rem;">
+      <div class="card" style="display:flex;gap:0.75rem;align-items:flex-start;">
+        <div class="icon-circle icon-blue" style="flex-shrink:0;"><i data-lucide="sun" style="width:20px;height:20px;"></i></div>
+        <div>
+          <p style="color:var(--text-primary);font-weight:500;">What's today's space photo from NASA?</p>
+          <p style="font-size:0.85rem;">Calls <code>get_todays_space_photo</code></p>
+        </div>
+      </div>
+      <div class="card" style="display:flex;gap:0.75rem;align-items:flex-start;">
+        <div class="icon-circle icon-purple" style="flex-shrink:0;"><i data-lucide="calendar" style="width:20px;height:20px;"></i></div>
+        <div>
+          <p style="color:var(--text-primary);font-weight:500;">Show me the photo from July 20, 1969</p>
+          <p style="font-size:0.85rem;">Calls <code>get_space_photo_by_date</code></p>
+        </div>
+      </div>
+      <div class="card" style="display:flex;gap:0.75rem;align-items:flex-start;">
+        <div class="icon-circle icon-green" style="flex-shrink:0;"><i data-lucide="shuffle" style="width:20px;height:20px;"></i></div>
+        <div>
+          <p style="color:var(--text-primary);font-weight:500;">Give me a random space photo</p>
+          <p style="font-size:0.85rem;">Calls <code>get_random_space_photo</code></p>
+        </div>
+      </div>
+      <div class="card" style="display:flex;gap:0.75rem;align-items:flex-start;">
+        <div class="icon-circle icon-cyan" style="flex-shrink:0;"><i data-lucide="book-open" style="width:20px;height:20px;"></i></div>
+        <div>
+          <p style="color:var(--text-primary);font-weight:500;">What famous space dates can I explore?</p>
+          <p style="font-size:0.85rem;">Reads <code>space://events/famous-dates</code></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 17: EXTENSIONS
+     ============================================================ -->
+<section class="slide" data-slide="16">
+  <div class="slide-inner">
+    <span class="label label-orange">Bonus</span>
+    <h2><i data-lucide="puzzle" style="width:28px;height:28px;vertical-align:-5px;color:var(--accent-orange);"></i> Extensions</h2>
+    <p>Ideas to keep building after the workshop.</p>
+
+    <div class="card-grid cols-2" style="margin-top:1.5rem;">
+      <div class="card">
+        <div class="icon-circle icon-blue"><i data-lucide="calendar-range" style="width:20px;height:20px;"></i></div>
+        <h3>Date Range Tool</h3>
+        <p>Fetch multiple photos from a date range (max 7 days).</p>
+        <pre style="font-size:0.78rem;margin-top:0.5rem;"><code class="language-python">@mcp.tool()
+async def get_space_photos_date_range(
+    start_date: str, end_date: str
+) -> str:</code></pre>
+      </div>
+      <div class="card">
+        <div class="icon-circle icon-green"><i data-lucide="download" style="width:20px;height:20px;"></i></div>
+        <h3>Image Download</h3>
+        <p>Download APOD images to a local directory.</p>
+        <pre style="font-size:0.78rem;margin-top:0.5rem;"><code class="language-python">@mcp.tool()
+async def download_space_photo(
+    date: str, save_directory: str
+) -> str:</code></pre>
+      </div>
+      <div class="card">
+        <div class="icon-circle icon-purple"><i data-lucide="bar-chart-3" style="width:20px;height:20px;"></i></div>
+        <h3>Archive Statistics</h3>
+        <p>Show stats about the 30+ year APOD archive.</p>
+        <pre style="font-size:0.78rem;margin-top:0.5rem;"><code class="language-python">@mcp.tool()
+async def get_apod_statistics() -> str:</code></pre>
+      </div>
+      <div class="card">
+        <div class="icon-circle icon-orange"><i data-lucide="wifi" style="width:20px;height:20px;"></i></div>
+        <h3>HTTP Transport</h3>
+        <p>Switch from stdio to SSE for remote access.</p>
+        <pre style="font-size:0.78rem;margin-top:0.5rem;"><code class="language-python">mcp.run(transport="sse", port=8000)</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 18: SECURITY CONSIDERATIONS
+     ============================================================ -->
+<section class="slide" data-slide="17">
+  <div class="slide-inner">
+    <span class="label label-pink"><i data-lucide="shield-alert" style="width:14px;height:14px;vertical-align:-2px;"></i>&ensp;Security</span>
+    <h2><i data-lucide="lock" style="width:28px;height:28px;vertical-align:-5px;color:var(--accent-red);"></i> Security Considerations</h2>
+    <p>MCP servers extend what an AI agent can do. That power demands careful security thinking.</p>
+
+    <div class="two-col" style="margin-top:1.25rem;">
+      <div>
+        <h3 style="color:var(--accent-orange);"><i data-lucide="alert-triangle" style="width:18px;height:18px;vertical-align:-3px;"></i> General MCP Risks</h3>
+        <ul class="checklist" style="margin-top:0.5rem;">
+          <li><i data-lucide="x" style="width:16px;height:16px;color:var(--accent-red);"></i> <span><strong>Over-permissive tools</strong> &mdash; a tool that writes files or runs shell commands can be exploited via prompt injection</span></li>
+          <li><i data-lucide="x" style="width:16px;height:16px;color:var(--accent-red);"></i> <span><strong>Data exfiltration</strong> &mdash; tools that return sensitive data (env vars, DB rows) can leak through the conversation</span></li>
+          <li><i data-lucide="x" style="width:16px;height:16px;color:var(--accent-red);"></i> <span><strong>No built-in auth</strong> &mdash; the MCP spec does not mandate authentication between client and server</span></li>
+          <li><i data-lucide="x" style="width:16px;height:16px;color:var(--accent-red);"></i> <span><strong>Secrets in config</strong> &mdash; API keys hardcoded in server code or JSON configs end up in repos</span></li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="color:var(--accent-red);"><i data-lucide="wifi" style="width:18px;height:18px;vertical-align:-3px;"></i> HTTP / SSE Transport Risks</h3>
+        <ul class="checklist" style="margin-top:0.5rem;">
+          <li><i data-lucide="x" style="width:16px;height:16px;color:var(--accent-red);"></i> <span><strong>Open network endpoint</strong> &mdash; SSE transport binds to a port anyone on the network can reach</span></li>
+          <li><i data-lucide="x" style="width:16px;height:16px;color:var(--accent-red);"></i> <span><strong>No TLS by default</strong> &mdash; traffic is plaintext; credentials and responses are sniffable</span></li>
+          <li><i data-lucide="x" style="width:16px;height:16px;color:var(--accent-red);"></i> <span><strong>No request auth</strong> &mdash; any HTTP client can call your tools without a token</span></li>
+          <li><i data-lucide="x" style="width:16px;height:16px;color:var(--accent-red);"></i> <span><strong>SSRF / open redirect</strong> &mdash; tools that accept URLs as parameters can be pointed at internal services</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <h3 style="margin-top:1.25rem;color:var(--accent-green);"><i data-lucide="shield-check" style="width:18px;height:18px;vertical-align:-3px;"></i> Mitigations</h3>
+    <div class="card-grid cols-3" style="margin-top:0.5rem;">
+      <div class="card" style="padding:1rem;">
+        <div class="icon-circle icon-green" style="width:36px;height:36px;margin-bottom:0.5rem;"><i data-lucide="lock" style="width:18px;height:18px;"></i></div>
+        <h3 style="font-size:0.95rem;">TLS / Reverse Proxy</h3>
+        <p style="font-size:0.85rem;">Put SSE behind HTTPS (nginx, Caddy) so traffic is encrypted in transit.</p>
+      </div>
+      <div class="card" style="padding:1rem;">
+        <div class="icon-circle icon-blue" style="width:36px;height:36px;margin-bottom:0.5rem;"><i data-lucide="key" style="width:18px;height:18px;"></i></div>
+        <h3 style="font-size:0.95rem;">Auth Tokens</h3>
+        <p style="font-size:0.85rem;">Require a Bearer token or API key header; reject unauthenticated requests.</p>
+      </div>
+      <div class="card" style="padding:1rem;">
+        <div class="icon-circle icon-purple" style="width:36px;height:36px;margin-bottom:0.5rem;"><i data-lucide="network" style="width:18px;height:18px;"></i></div>
+        <h3 style="font-size:0.95rem;">Network Isolation</h3>
+        <p style="font-size:0.85rem;">Bind to <code>127.0.0.1</code>, use firewall rules, or run inside a private VPC.</p>
+      </div>
+      <div class="card" style="padding:1rem;">
+        <div class="icon-circle icon-orange" style="width:36px;height:36px;margin-bottom:0.5rem;"><i data-lucide="filter" style="width:18px;height:18px;"></i></div>
+        <h3 style="font-size:0.95rem;">Input Validation</h3>
+        <p style="font-size:0.85rem;">Validate and sanitize every parameter. Allowlist URLs, reject path traversals.</p>
+      </div>
+      <div class="card" style="padding:1rem;">
+        <div class="icon-circle icon-cyan" style="width:36px;height:36px;margin-bottom:0.5rem;"><i data-lucide="gauge" style="width:18px;height:18px;"></i></div>
+        <h3 style="font-size:0.95rem;">Rate Limiting</h3>
+        <p style="font-size:0.85rem;">Throttle requests per client to prevent abuse and runaway API costs.</p>
+      </div>
+      <div class="card" style="padding:1rem;">
+        <div class="icon-circle icon-pink" style="width:36px;height:36px;margin-bottom:0.5rem;"><i data-lucide="eye-off" style="width:18px;height:18px;"></i></div>
+        <h3 style="font-size:0.95rem;">Secrets in Env Vars</h3>
+        <p style="font-size:0.85rem;">Load API keys from <code>.env</code> or a secrets manager &mdash; never hardcode in source.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 19: SUMMARY
+     ============================================================ -->
+<section class="slide" data-slide="18">
+  <div class="slide-inner">
+    <span class="label label-green">Summary</span>
+    <h2>What You Built</h2>
+
+    <div class="two-col" style="margin-top:1.5rem;">
+      <div>
+        <h3><i data-lucide="wrench" style="width:18px;height:18px;vertical-align:-3px;"></i> 3 Tools + 1 Resource</h3>
+        <ul class="checklist">
+          <li><i data-lucide="check" style="width:16px;height:16px;"></i> Get today's space photo</li>
+          <li><i data-lucide="check" style="width:16px;height:16px;"></i> Get photo by specific date</li>
+          <li><i data-lucide="check" style="width:16px;height:16px;"></i> Get random photo from archives</li>
+          <li><i data-lucide="check" style="width:16px;height:16px;"></i> Famous space dates resource</li>
+        </ul>
+      </div>
+      <div>
+        <h3><i data-lucide="brain" style="width:18px;height:18px;vertical-align:-3px;"></i> Key Concepts</h3>
+        <ul class="checklist">
+          <li><i data-lucide="check" style="width:16px;height:16px;"></i> MCP server initialization</li>
+          <li><i data-lucide="check" style="width:16px;height:16px;"></i> Async HTTP requests</li>
+          <li><i data-lucide="check" style="width:16px;height:16px;"></i> Tool decorators &amp; docstrings</li>
+          <li><i data-lucide="check" style="width:16px;height:16px;"></i> Parameter validation</li>
+          <li><i data-lucide="check" style="width:16px;height:16px;"></i> Resources vs Tools</li>
+          <li><i data-lucide="check" style="width:16px;height:16px;"></i> Client integration (Cursor, Claude Code, Desktop)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 20: NEXT STEPS / THANK YOU
+     ============================================================ -->
+<section class="slide slide-title" data-slide="19">
+  <div class="slide-inner">
+    <span class="hero-icon"><i data-lucide="rocket" style="width:72px;height:72px;color:var(--accent-green);"></i></span>
+    <h1 style="background:linear-gradient(135deg, var(--accent-green), var(--accent-cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Next Steps</h1>
+    <p class="subtitle">Keep building!</p>
+
+    <div class="card-grid cols-2" style="margin-top:1.5rem;text-align:left;max-width:700px;margin-left:auto;margin-right:auto;">
+      <div class="card" style="display:flex;gap:0.75rem;align-items:flex-start;">
+        <div class="icon-circle icon-blue" style="flex-shrink:0;"><i data-lucide="key" style="width:18px;height:18px;"></i></div>
+        <div><p style="color:var(--text-primary);font-weight:500;">Get a NASA API key</p><p style="font-size:0.85rem;"><a href="https://api.nasa.gov" target="_blank">api.nasa.gov</a> &mdash; 500K requests/day</p></div>
+      </div>
+      <div class="card" style="display:flex;gap:0.75rem;align-items:flex-start;">
+        <div class="icon-circle icon-green" style="flex-shrink:0;"><i data-lucide="telescope" style="width:18px;height:18px;"></i></div>
+        <div><p style="color:var(--text-primary);font-weight:500;">Try other NASA APIs</p><p style="font-size:0.85rem;">Mars Rover, Earth Imagery, Asteroids</p></div>
+      </div>
+      <div class="card" style="display:flex;gap:0.75rem;align-items:flex-start;">
+        <div class="icon-circle icon-purple" style="flex-shrink:0;"><i data-lucide="hammer" style="width:18px;height:18px;"></i></div>
+        <div><p style="color:var(--text-primary);font-weight:500;">Build your own server</p><p style="font-size:0.85rem;">Weather, stocks, GitHub, Spotify&hellip;</p></div>
+      </div>
+      <div class="card" style="display:flex;gap:0.75rem;align-items:flex-start;">
+        <div class="icon-circle icon-orange" style="flex-shrink:0;"><i data-lucide="cloud" style="width:18px;height:18px;"></i></div>
+        <div><p style="color:var(--text-primary);font-weight:500;">Deploy to production</p><p style="font-size:0.85rem;">HTTP transport + share with your team</p></div>
+      </div>
+    </div>
+
+    <p style="margin-top:2.5rem;font-size:1.5rem;font-weight:700;color:var(--text-primary);">Congratulations! You can build MCP servers.</p>
+  </div>
+</section>
+
+</div><!-- /deck -->
+
+<!-- ============================================================
+     NAVIGATION BAR
+     ============================================================ -->
+<nav class="nav-bar">
+  <button id="btnPrev" aria-label="Previous slide">
+    <i data-lucide="chevron-left" style="width:16px;height:16px;"></i> Prev
+  </button>
+  <span class="slide-counter" id="slideCounter">1 / 20</span>
+  <button id="btnNext" aria-label="Next slide">
+    Next <i data-lucide="chevron-right" style="width:16px;height:16px;"></i>
+  </button>
+</nav>
+
+<!-- ============================================================
+     SCRIPTS
+     ============================================================ -->
+<script>
+(function () {
+  "use strict";
+
+  /* ---- Init Lucide icons ---- */
+  lucide.createIcons();
+
+  /* ---- Highlight.js ---- */
+  hljs.highlightAll();
+
+  /* ---- Slide engine ---- */
+  const slides = document.querySelectorAll(".slide");
+  const total  = slides.length;
+  let current  = 0;
+
+  const counter    = document.getElementById("slideCounter");
+  const btnPrev    = document.getElementById("btnPrev");
+  const btnNext    = document.getElementById("btnNext");
+  const progressEl = document.getElementById("progressBar");
+
+  function show(index, direction) {
+    if (index < 0 || index >= total) return;
+    const prev = current;
+    current = index;
+
+    slides.forEach((s, i) => {
+      s.classList.remove("active", "prev");
+      if (i === current) {
+        s.classList.add("active");
+      } else if (i === prev && direction === "next") {
+        s.classList.add("prev");
+      }
+    });
+
+    counter.textContent = (current + 1) + " / " + total;
+    btnPrev.disabled = current === 0;
+    btnNext.disabled = current === total - 1;
+    progressEl.style.width = ((current + 1) / total * 100) + "%";
+
+    slides[current].scrollTop = 0;
+  }
+
+  btnPrev.addEventListener("click", function () { show(current - 1, "prev"); });
+  btnNext.addEventListener("click", function () { show(current + 1, "next"); });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") {
+      e.preventDefault();
+      show(current + 1, "next");
+    } else if (e.key === "ArrowLeft" || e.key === "PageUp") {
+      e.preventDefault();
+      show(current - 1, "prev");
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      show(0, "prev");
+    } else if (e.key === "End") {
+      e.preventDefault();
+      show(total - 1, "next");
+    }
+  });
+
+  /* ---- Touch / swipe support ---- */
+  let touchStartX = 0;
+  document.addEventListener("touchstart", function (e) { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener("touchend", function (e) {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 60) {
+      if (dx < 0) show(current + 1, "next");
+      else show(current - 1, "prev");
+    }
+  }, { passive: true });
+
+  /* ---- Tab switcher ---- */
+  document.querySelectorAll(".tabs").forEach(function (tabGroup) {
+    tabGroup.querySelectorAll(".tab-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        tabGroup.querySelectorAll(".tab-btn").forEach(function (b) { b.classList.remove("active"); });
+        btn.classList.add("active");
+        var targetId = btn.getAttribute("data-tab");
+        var parent = tabGroup.parentElement;
+        parent.querySelectorAll(".tab-panel").forEach(function (panel) {
+          panel.classList.toggle("active", panel.id === targetId);
+        });
+      });
+    });
+  });
+
+  /* ---- Init first slide ---- */
+  show(0, "next");
+})();
+</script>
+
+</body>
+</html>

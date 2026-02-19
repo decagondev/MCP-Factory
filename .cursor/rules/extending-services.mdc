@@ -1,0 +1,140 @@
+---
+description: Step-by-step instructions for adding a new API service plugin to MCP Factory
+globs:
+  - "nasa_apod/services/**"
+  - "nasa_apod/server.py"
+  - "tests/**"
+---
+
+# Extending MCP Factory with a New Service
+
+Follow these steps exactly when asked to add a new API service, new tools, or integrate a new external API.
+
+## Step-by-Step Process
+
+### 1. Create the service directory
+
+```bash
+mkdir -p nasa_apod/services/<service_name>
+```
+
+### 2. Create config.py
+
+```python
+"""Configuration constants for the <Service Name> service."""
+
+import os
+
+YOUR_API_BASE_URL: str = "<base_url>"
+YOUR_API_KEY: str = os.environ.get("<ENV_VAR_NAME>", "")
+REQUEST_TIMEOUT_SECONDS: float = 30.0
+```
+
+### 3. Create client.py (extend BaseAPIClient)
+
+```python
+"""HTTP client for the <Service Name> service."""
+
+import logging
+from typing import Any
+import httpx
+from nasa_apod.services.base import BaseAPIClient
+
+logger = logging.getLogger(__name__)
+
+class YourClient(BaseAPIClient):
+    async def fetch(self, **params: str) -> dict[str, Any] | None:
+        query: dict[str, str] = {"api_key": self.api_key}
+        query.update(params)
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.get(self.base_url, params=query, timeout=self.timeout)
+                response.raise_for_status()
+                return response.json()
+            except httpx.HTTPStatusError as exc:
+                logger.error("HTTP %s: %s", exc.response.status_code, exc.response.text[:200])
+                return None
+            except httpx.RequestError as exc:
+                logger.error("Network error: %s", exc)
+                return None
+```
+
+### 4. Create formatter.py (extend BaseFormatter)
+
+```python
+"""Response formatter for the <Service Name> service."""
+
+from typing import Any
+from nasa_apod.services.base import BaseFormatter
+
+class YourFormatter(BaseFormatter):
+    def format(self, data: dict[str, Any], **kwargs: Any) -> str:
+        parts: list[str] = []
+        header: str | None = kwargs.get("header")
+        if header:
+            parts.append(header)
+            parts.append("")
+        parts.append(f"**{data['title']}**")
+        parts.append(data.get("description", ""))
+        return "\n".join(parts)
+```
+
+### 5. Create __init__.py (service class with register method)
+
+```python
+"""<Service Name> service plugin."""
+
+from mcp.server.fastmcp import FastMCP
+from nasa_apod.services.<service_name>.client import YourClient
+from nasa_apod.services.<service_name>.config import YOUR_API_BASE_URL, YOUR_API_KEY, REQUEST_TIMEOUT_SECONDS
+from nasa_apod.services.<service_name>.formatter import YourFormatter
+
+class YourService:
+    def __init__(self) -> None:
+        self._client = YourClient(base_url=YOUR_API_BASE_URL, api_key=YOUR_API_KEY, timeout=REQUEST_TIMEOUT_SECONDS)
+        self._formatter = YourFormatter()
+
+    def register(self, mcp: FastMCP) -> None:
+        client = self._client
+        formatter = self._formatter
+
+        @mcp.tool()
+        async def your_tool_name() -> str:
+            """Describe what this tool does. Be specific for AI agent discovery."""
+            data = await client.fetch()
+            if not data:
+                return "Unable to fetch data."
+            return formatter.format(data)
+```
+
+### 6. Register in server.py
+
+Add exactly two lines to `nasa_apod/server.py`:
+- Import: `from nasa_apod.services.<service_name> import YourService`
+- Register: `registry.add(YourService())` (before `registry.apply_all(mcp)`)
+
+### 7. Write tests
+
+Create these test files under `tests/`:
+- `test_<service_name>_client.py` -- mock HTTP with `respx`, test success and error paths
+- `test_<service_name>_formatter.py` -- test output format with sample data
+- `test_<service_name>_config.py` -- verify constants and env var loading
+- Update `test_e2e.py` or create a new E2E test for the full tool flow
+
+### 8. Run tests
+
+```bash
+uv run pytest -v
+```
+
+ALL tests (existing + new) must pass before committing.
+
+## Rules
+
+- The APOD service at `nasa_apod/services/apod/` is the canonical example. Follow its patterns.
+- Only modify `nasa_apod/server.py` among existing files (to add the import and registration).
+- Tool functions return strings. They never raise exceptions.
+- Use `logging`, never `print()`.
+- Load secrets from environment variables, never hardcode.
+- Add docstrings to every class, method, and function.
+- Update `.cursor/rules/mcp-factory-tools.mdc` with the new tool if it should be used by the AI agent.
