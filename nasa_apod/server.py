@@ -11,10 +11,12 @@ from mcp.server.fastmcp import FastMCP
 
 from nasa_apod.config import SERVER_NAME
 from nasa_apod.services.apod import ApodService
+from nasa_apod.services.code_guardian import CodeGuardianService
 from nasa_apod.services.registry import ServiceRegistry
 
 mcp = FastMCP(SERVER_NAME)
 
 registry = ServiceRegistry()
 registry.add(ApodService())
+registry.add(CodeGuardianService())
 registry.apply_all(mcp)
