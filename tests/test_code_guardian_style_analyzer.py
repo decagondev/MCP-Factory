@@ -1,9 +1,9 @@
-"""Tests for nasa_apod.services.code_guardian.analyzers.style."""
+"""Tests for mcp_factory.services.code_guardian.analyzers.style."""
 
 import pytest
 
-from nasa_apod.services.code_guardian.analyzers.style import StyleAnalyzer
-from nasa_apod.services.code_guardian.models import ScannedFile
+from mcp_factory.services.code_guardian.analyzers.style import StyleAnalyzer
+from mcp_factory.services.code_guardian.models import ScannedFile
 
 
 def _make_file(content: str, language: str = "python", path: str = "test.py") -> list[ScannedFile]:

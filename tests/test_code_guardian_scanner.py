@@ -1,11 +1,11 @@
-"""Tests for nasa_apod.services.code_guardian.scanner."""
+"""Tests for mcp_factory.services.code_guardian.scanner."""
 
 import os
 import tempfile
 
 import pytest
 
-from nasa_apod.services.code_guardian.scanner import FileScanner
+from mcp_factory.services.code_guardian.scanner import FileScanner
 
 
 def _create_tree(base: str, structure: dict[str, str | dict]) -> None:

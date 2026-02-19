@@ -10,7 +10,7 @@ import httpx
 import pytest
 import respx
 
-from nasa_apod.services.apod.config import NASA_APOD_BASE_URL
+from mcp_factory.services.apod.config import NASA_APOD_BASE_URL
 
 SAMPLE_APOD: dict = {
     "title": "E2E Test Nebula",
@@ -37,9 +37,9 @@ def mcp_server():
     """
     from mcp.server.fastmcp import FastMCP
 
-    from nasa_apod.config import SERVER_NAME
-    from nasa_apod.services.apod import ApodService
-    from nasa_apod.services.registry import ServiceRegistry
+    from mcp_factory.config import SERVER_NAME
+    from mcp_factory.services.apod import ApodService
+    from mcp_factory.services.registry import ServiceRegistry
 
     server = FastMCP(SERVER_NAME)
     registry = ServiceRegistry()

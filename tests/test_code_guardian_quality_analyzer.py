@@ -1,9 +1,9 @@
-"""Tests for nasa_apod.services.code_guardian.analyzers.code_quality."""
+"""Tests for mcp_factory.services.code_guardian.analyzers.code_quality."""
 
 import pytest
 
-from nasa_apod.services.code_guardian.analyzers.code_quality import CodeQualityAnalyzer
-from nasa_apod.services.code_guardian.models import ScannedFile
+from mcp_factory.services.code_guardian.analyzers.code_quality import CodeQualityAnalyzer
+from mcp_factory.services.code_guardian.models import ScannedFile
 
 
 def _make_file(

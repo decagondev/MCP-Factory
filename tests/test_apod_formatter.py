@@ -1,6 +1,6 @@
-"""Tests for nasa_apod.services.apod.formatter."""
+"""Tests for mcp_factory.services.apod.formatter."""
 
-from nasa_apod.services.apod.formatter import ApodFormatter
+from mcp_factory.services.apod.formatter import ApodFormatter
 
 SAMPLE_DATA: dict = {
     "title": "The Milky Way over Bryce Canyon",

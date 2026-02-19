@@ -1,10 +1,10 @@
-"""Tests for nasa_apod.services.base ABC contracts."""
+"""Tests for mcp_factory.services.base ABC contracts."""
 
 from typing import Any
 
 import pytest
 
-from nasa_apod.services.base import BaseAPIClient, BaseFormatter
+from mcp_factory.services.base import BaseAPIClient, BaseFormatter
 
 
 class ConcreteClient(BaseAPIClient):

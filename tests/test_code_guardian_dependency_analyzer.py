@@ -1,13 +1,13 @@
-"""Tests for nasa_apod.services.code_guardian.analyzers.dependencies."""
+"""Tests for mcp_factory.services.code_guardian.analyzers.dependencies."""
 
 import httpx
 import pytest
 import respx
 
-from nasa_apod.services.code_guardian.analyzers.dependencies import DependencyAnalyzer
-from nasa_apod.services.code_guardian.config import OSV_API_BASE_URL
-from nasa_apod.services.code_guardian.models import ScannedFile
-from nasa_apod.services.code_guardian.osv_client import OsvClient
+from mcp_factory.services.code_guardian.analyzers.dependencies import DependencyAnalyzer
+from mcp_factory.services.code_guardian.config import OSV_API_BASE_URL
+from mcp_factory.services.code_guardian.models import ScannedFile
+from mcp_factory.services.code_guardian.osv_client import OsvClient
 
 SAMPLE_PACKAGE_JSON = """{
   "name": "my-app",

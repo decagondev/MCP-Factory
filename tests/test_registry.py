@@ -1,10 +1,10 @@
-"""Tests for nasa_apod.services.registry.ServiceRegistry."""
+"""Tests for mcp_factory.services.registry.ServiceRegistry."""
 
 from unittest.mock import MagicMock
 
 import pytest
 
-from nasa_apod.services.registry import ServiceRegistry
+from mcp_factory.services.registry import ServiceRegistry
 
 
 class _StubPlugin:

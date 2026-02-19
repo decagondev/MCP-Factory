@@ -2,8 +2,8 @@
 
 import pytest
 
-from nasa_apod.services.code_guardian.analyzers import BaseAnalyzer, AnalyzerRegistry
-from nasa_apod.services.code_guardian.models import Finding, ScannedFile
+from mcp_factory.services.code_guardian.analyzers import BaseAnalyzer, AnalyzerRegistry
+from mcp_factory.services.code_guardian.models import Finding, ScannedFile
 
 
 class _StubAnalyzer(BaseAnalyzer):

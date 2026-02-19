@@ -1,8 +1,8 @@
-"""Tests for nasa_apod.services.code_guardian.models."""
+"""Tests for mcp_factory.services.code_guardian.models."""
 
 import pytest
 
-from nasa_apod.services.code_guardian.models import (
+from mcp_factory.services.code_guardian.models import (
     SEVERITY_ORDER,
     Finding,
     ScanResult,

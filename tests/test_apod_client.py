@@ -1,11 +1,11 @@
-"""Tests for nasa_apod.services.apod.client using respx to mock httpx."""
+"""Tests for mcp_factory.services.apod.client using respx to mock httpx."""
 
 import httpx
 import pytest
 import respx
 
-from nasa_apod.services.apod.client import ApodClient
-from nasa_apod.services.apod.config import NASA_APOD_BASE_URL
+from mcp_factory.services.apod.client import ApodClient
+from mcp_factory.services.apod.config import NASA_APOD_BASE_URL
 
 SAMPLE_RESPONSE: dict = {
     "title": "Test Galaxy",

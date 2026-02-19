@@ -1,9 +1,9 @@
-"""Tests for nasa_apod.services.code_guardian.validation."""
+"""Tests for mcp_factory.services.code_guardian.validation."""
 
 import os
 import tempfile
 
-from nasa_apod.services.code_guardian.validation import validate_scan_path
+from mcp_factory.services.code_guardian.validation import validate_scan_path
 
 
 class TestValidateScanPath:

@@ -1,10 +1,10 @@
-"""Tests for nasa_apod.services.apod.validation."""
+"""Tests for mcp_factory.services.apod.validation."""
 
 from datetime import datetime
 
 import pytest
 
-from nasa_apod.services.apod.validation import validate_apod_date
+from mcp_factory.services.apod.validation import validate_apod_date
 
 
 class TestValidateApodDate:

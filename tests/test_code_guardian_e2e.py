@@ -12,7 +12,7 @@ import httpx
 import pytest
 import respx
 
-from nasa_apod.services.code_guardian.config import OSV_API_BASE_URL
+from mcp_factory.services.code_guardian.config import OSV_API_BASE_URL
 
 EXPECTED_TOOL_NAMES: set[str] = {
     "scan_codebase",
@@ -31,9 +31,9 @@ def mcp_server():
     """
     from mcp.server.fastmcp import FastMCP
 
-    from nasa_apod.config import SERVER_NAME
-    from nasa_apod.services.code_guardian import CodeGuardianService
-    from nasa_apod.services.registry import ServiceRegistry
+    from mcp_factory.config import SERVER_NAME
+    from mcp_factory.services.code_guardian import CodeGuardianService
+    from mcp_factory.services.registry import ServiceRegistry
 
     server = FastMCP(SERVER_NAME)
     registry = ServiceRegistry()

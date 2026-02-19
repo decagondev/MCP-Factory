@@ -1,9 +1,9 @@
-"""Tests for nasa_apod.services.code_guardian.formatter."""
+"""Tests for mcp_factory.services.code_guardian.formatter."""
 
 import pytest
 
-from nasa_apod.services.code_guardian.formatter import CodeGuardianFormatter
-from nasa_apod.services.code_guardian.models import Finding, ScanResult
+from mcp_factory.services.code_guardian.formatter import CodeGuardianFormatter
+from mcp_factory.services.code_guardian.models import Finding, ScanResult
 
 
 def _sample_result() -> ScanResult:
